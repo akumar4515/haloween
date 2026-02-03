@@ -172,9 +172,77 @@
   color: #ee8db2;
 }
 
+@media (max-width: 768px) {
+  .main {
+    padding: 12px 16px 24px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .meta {
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  .description {
+    font-size: 0.9rem;
+  }
+
+  .recommendationsTitle {
+    font-size: 1.1rem;
+  }
+
+  .recommendationsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}
+
 @media (max-width: 640px) {
   .main {
     padding: 12px 12px 24px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .meta {
+    font-size: 0.8rem;
+  }
+
+  .description {
+    font-size: 0.85rem;
+  }
+
+  .tagsRow {
+    gap: 4px;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+
+  .actorsSection {
+    font-size: 0.85rem;
+  }
+
+  .recommendationsSection {
+    margin-top: 32px;
+    padding-top: 24px;
+  }
+
+  .recommendationsTitle {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+
+  .recommendationsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
   }
 }
 

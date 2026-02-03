@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import SearchBar from "./SearchBar";
+import AgeVerification from "./components/AgeVerification";
 
 export default function LayoutShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,6 +14,7 @@ export default function LayoutShell({ children }) {
 
   return (
     <div className={styles.page}>
+      <AgeVerification />
       <header className={styles.header}>
         <Link href="/" className={styles.logo}>
           <img
@@ -43,38 +45,59 @@ export default function LayoutShell({ children }) {
       </header>
 
       <main className={styles.main}>
+        {sidebarOpen && (
+          <div
+            className={styles.sidebarBackdrop}
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
         <aside
           className={`${styles.sidebar} ${
             sidebarOpen ? styles.sidebarVisible : styles.sidebarHidden
           }`}
         >
-          <div className={styles.authBox}>
-            <h2 className={styles.sidebarTitle}>Welcome</h2>
-            <p className={styles.sidebarText}>
-              Sign in to like videos, comment, and subscribe to channels.
-            </p>
-            <div className={styles.authActions}>
-              <button className={styles.primaryButton}>Log in</button>
-              <button className={styles.secondaryButton}>Sign up</button>
-            </div>
-          </div>
+          <button
+            type="button"
+            className={styles.sidebarCloseButton}
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <span className={styles.sidebarCloseIcon}>×</span>
+          </button>
 
           <nav className={styles.navSection}>
             <h3 className={styles.navTitle}>Browse</h3>
             <ul className={styles.navList}>
               <li>
-                <Link href="/channels" className={styles.navLink}>
+                <Link href="/channels" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
                   Channels
                 </Link>
               </li>
               <li>
-                <Link href="/categories" className={styles.navLink}>
+                <Link href="/categories" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
                   Categories
                 </Link>
               </li>
               <li>
-                <Link href="/actors" className={styles.navLink}>
+                <Link href="/actors" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
                   Actors
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          <nav className={styles.navSection}>
+            <h3 className={styles.navTitle}>Legal</h3>
+            <ul className={styles.navList}>
+              <li>
+                <Link href="/privacy-policy" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/disclaimer" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
+                  Disclaimer
                 </Link>
               </li>
             </ul>
