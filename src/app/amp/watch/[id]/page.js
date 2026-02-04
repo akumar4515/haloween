@@ -345,7 +345,3 @@ export default async function AMPWatchPage({ params }) {
   );
 }
 
-// Force AMP validation
-export const config = {
-  amp: true,
-};

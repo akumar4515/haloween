@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -17,11 +17,10 @@ const SUPPORTED_LANGUAGES = [
 
 export default function LanguageSelector() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const handleLanguageChange = (e) => {
     const lang = e.target.value;
-    const search = searchParams.toString();
+    const search = window.location.search.replace("?", "");
 
     // Remove existing language prefix
     const pathParts = pathname.split('/').filter(Boolean);

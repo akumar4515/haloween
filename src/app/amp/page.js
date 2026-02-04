@@ -320,7 +320,3 @@ export default async function AMPHome({ searchParams }) {
   );
 }
 
-// Force AMP validation
-export const config = {
-  amp: true,
-};
