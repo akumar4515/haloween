@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import SearchBar from "./SearchBar";
 import AgeVerification from "./components/AgeVerification";
@@ -12,8 +11,12 @@ import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
 
 export default function LayoutShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") || "";
+  const [initialQuery, setInitialQuery] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setInitialQuery(params.get("q") || "");
+  }, []);
 
   return (
     <div className={styles.page}>
