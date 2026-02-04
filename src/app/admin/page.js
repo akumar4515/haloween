@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 import AdminLogin from "./components/AdminLogin";
 import VideosManager from "./components/VideosManager";
-import ChannelsManager from "./components/ChannelsManager";
-import CategoriesManager from "./components/CategoriesManager";
-import ActorsManager from "./components/ActorsManager";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -71,9 +68,6 @@ export default function AdminPage() {
 
   const tabs = [
     { id: "videos", label: "Videos" },
-    { id: "channels", label: "Channels" },
-    { id: "categories", label: "Categories" },
-    { id: "actors", label: "Actors" },
   ];
 
   return (
@@ -104,9 +98,6 @@ export default function AdminPage() {
 
       <div className={styles.tabContent}>
         {activeTab === "videos" && <VideosManager />}
-        {activeTab === "channels" && <ChannelsManager />}
-        {activeTab === "categories" && <CategoriesManager />}
-        {activeTab === "actors" && <ActorsManager />}
       </div>
     </div>
   );

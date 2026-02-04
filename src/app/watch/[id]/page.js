@@ -1,158 +1,187 @@
 import Link from "next/link";
 import styles from "./watch.module.css";
 import RecommendationsSection from "./RecommendationsSection";
+import VideoPlayerWithTracking from "../../components/VideoPlayerWithTracking";
+import { ContentBanner } from "../../components/BannerAd";
+import { shouldShowAd, EXOCLICK_ZONES } from "../../config/ads";
 
 // Helper function to detect and convert embedded URLs
 function getEmbedUrl(url) {
   if (!url) return null;
+
+  // If url is an iframe HTML string, extract src="..."
+  const raw = String(url);
+  const iframeSrcMatch = raw.match(/<iframe[^>]*\s+src=["']([^"']+)["'][^>]*>/i);
+  const normalizedUrl = iframeSrcMatch?.[1] ? iframeSrcMatch[1] : raw;
   
   // Check if it's already an iframe embed URL
-  if (url.includes('youtube.com/embed') || url.includes('youtu.be')) {
+  if (normalizedUrl.includes('youtube.com/embed') || normalizedUrl.includes('youtu.be')) {
     // Extract YouTube video ID
     const youtubeRegex = /(?:youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/watch\?v=)([^&\n?#]+)/;
-    const match = url.match(youtubeRegex);
+    const match = normalizedUrl.match(youtubeRegex);
     if (match && match[1]) {
       return `https://www.youtube.com/embed/${match[1]}`;
     }
   }
   
   // Check for Vimeo
-  if (url.includes('vimeo.com')) {
+  if (normalizedUrl.includes('vimeo.com')) {
     const vimeoRegex = /(?:vimeo\.com\/)(\d+)/;
-    const match = url.match(vimeoRegex);
+    const match = normalizedUrl.match(vimeoRegex);
     if (match && match[1]) {
       return `https://player.vimeo.com/video/${match[1]}`;
     }
   }
   
   // Check if it's already a full iframe embed URL
-  if (url.includes('embed') || url.includes('player')) {
-    return url;
+  if (normalizedUrl.includes('embed') || normalizedUrl.includes('player')) {
+    return normalizedUrl;
   }
   
   // If it's a direct video URL, return null to use video tag
   return null;
 }
 
-function VideoPlayer({ videoUrl, thumbnailUrl, title }) {
-  const embedUrl = getEmbedUrl(videoUrl);
-  
-  if (embedUrl) {
-    // Use iframe for embedded videos
-    return (
-      <iframe
-        className={styles.video}
-        src={embedUrl}
-        title={title || "Video player"}
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    );
-  }
-  
-  // Use video tag for direct video URLs
-  return (
-    <video
-      className={styles.video}
-      src={videoUrl}
-      controls
-      poster={thumbnailUrl || undefined}
-    />
-  );
-}
 
 async function fetchVideo(id) {
   const baseUrl =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 
-  // Reuse /videos list and filter client-side for simplicity; in a real app
-  // you'd probably expose /videos/:id from your Express router.
-  const url = new URL(`${baseUrl}/videos`, "http://localhost");
-  url.searchParams.set("page", "1");
-  url.searchParams.set("limit", "200");
-
+  // Use eporner API to fetch video by ID
+  const url = new URL(`${baseUrl}/eporner/videos/${id}`, "http://localhost");
+  url.searchParams.set("thumbsize", "big");
+  
   const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch video");
+  if (!res.ok) {
+    throw new Error("Failed to fetch video");
+  }
+  
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    const text = await res.text();
+    throw new Error(`Server returned non-JSON: ${text}`);
+  }
+  
   const data = await res.json();
-  const videos = data.data ?? [];
-
-  const numericId = Number(id);
-  return videos.find((v) => v.id === numericId) ?? null;
+  
+  // Backend returns { success: true, data: ... }
+  // The backend now formats the video to have video_url and thumbnail_url
+  if (data.success && data.data) {
+    // Check if data.data is the video object directly (formatted by backend)
+    if (data.data.id || data.data.title) {
+      // Log for debugging (remove in production)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Video data:', {
+          id: data.data.id,
+          title: data.data.title,
+          video_url: data.data.video_url,
+          thumbnail_url: data.data.thumbnail_url,
+          hasRaw: !!data.data.raw
+        });
+      }
+      return data.data;
+    }
+    // Check if data.data has nested video
+    else if (data.data.video) {
+      return data.data.video;
+    }
+  } else if (data.data) {
+    // Fallback: if no success field but data exists
+    return data.data;
+  }
+  
+  return data.video || data || null;
 }
 
-async function fetchRecommendedVideos(currentVideo) {
-  if (!currentVideo) return [];
+async function fetchRecommendedVideos(currentVideo, page = 1) {
+  if (!currentVideo) {
+    return { videos: [], pagination: { page: 1, totalPages: 1 }, query: "" };
+  }
 
   const baseUrl =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 
-  // Fetch all videos
-  const url = new URL(`${baseUrl}/videos`, "http://localhost");
-  url.searchParams.set("page", "1");
-  url.searchParams.set("limit", "200");
+  // Use eporner API for recommendations
+  const searchUrl = new URL(`${baseUrl}/eporner/videos/search`, "http://localhost");
+  
+  // Use keywords (preferred) or category/tags for recommendations
+  let recQuery = "";
+  const rawKeywords = currentVideo.keywords || currentVideo.raw?.keywords || "";
+  const keywordList = String(rawKeywords)
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
 
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) return [];
+  if (keywordList.length > 0) {
+    recQuery = keywordList[0];
+    searchUrl.searchParams.set("query", recQuery);
+  } else if (currentVideo.category) {
+    recQuery = currentVideo.category;
+    searchUrl.searchParams.set("query", recQuery);
+  } else if (currentVideo.tags) {
+    const tags = String(currentVideo.tags)
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (tags.length > 0) {
+      recQuery = tags[0];
+      searchUrl.searchParams.set("query", recQuery);
+    }
+  }
+  
+  searchUrl.searchParams.set("order", "mostviewed");
+  searchUrl.searchParams.set("page", String(page));
+  searchUrl.searchParams.set("per_page", "20");
+  searchUrl.searchParams.set("thumbsize", "big");
+
+  const res = await fetch(searchUrl.toString(), { cache: "no-store" });
+  if (!res.ok) {
+    return { videos: [], pagination: { page, totalPages: 1 }, query: recQuery };
+  }
+
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    return { videos: [], pagination: { page, totalPages: 1 }, query: recQuery };
+  }
 
   const data = await res.json();
-  const allVideos = data.data ?? [];
-
-  // Get matching criteria
-  const currentChannelSlug = currentVideo.channel?.slug || currentVideo.channel_slug || currentVideo.channel?.name || currentVideo.channel_name || "";
-  const currentChannelName = currentVideo.channel_name || currentVideo.channel?.name || "";
-  const currentCategory = currentVideo.category || "";
-  const currentTags = currentVideo.tags ? String(currentVideo.tags).split(",").map(t => t.trim()).filter(Boolean) : [];
-  const currentActorIds = currentVideo.actors && Array.isArray(currentVideo.actors) 
-    ? currentVideo.actors.map(a => a?.id || a?.slug || a?.name).filter(Boolean)
-    : [];
-
-  const normalizeString = (value) => String(value ?? "").trim().toLowerCase();
-
-  // Filter and score videos
-  const scoredVideos = allVideos
-    .filter(v => v.id !== currentVideo.id) // Exclude current video
-    .map(video => {
-      let score = 0;
-
-      // Check channel match
-      const videoChannelSlug = video.channel?.slug || video.channel_slug || video.channel?.name || video.channel_name || "";
-      const videoChannelName = video.channel_name || video.channel?.name || "";
-      if (currentChannelSlug && (
-        normalizeString(videoChannelSlug) === normalizeString(currentChannelSlug) ||
-        normalizeString(videoChannelName) === normalizeString(currentChannelName)
-      )) {
-        score += 3; // Channel match gets highest priority
-      }
-
-      // Check category match
-      if (currentCategory && normalizeString(video.category) === normalizeString(currentCategory)) {
-        score += 2;
-      }
-
-      // Check tag matches
-      const videoTags = video.tags ? String(video.tags).split(",").map(t => t.trim()).filter(Boolean) : [];
-      const matchingTags = currentTags.filter(tag => 
-        videoTags.some(vTag => normalizeString(vTag) === normalizeString(tag))
-      );
-      score += matchingTags.length; // 1 point per matching tag
-
-      // Check actor matches
-      const videoActorIds = video.actors && Array.isArray(video.actors)
-        ? video.actors.map(a => a?.id || a?.slug || a?.name).filter(Boolean)
-        : [];
-      const matchingActors = currentActorIds.filter(actorId =>
-        videoActorIds.some(vActorId => normalizeString(String(vActorId)) === normalizeString(String(actorId)))
-      );
-      score += matchingActors.length; // 1 point per matching actor
-
-      return { video, score };
-    })
-    .filter(item => item.score > 0) // Only include videos with at least one match
-    .sort((a, b) => b.score - a.score) // Sort by score descending
-    .map(item => item.video); // Return all scored videos, not limited
-
-  return scoredVideos;
+  
+  // Backend returns { success: true, data: ... }
+  // The data field from eporner API might be an array or an object with videos array
+  let videos = [];
+  let pagination = { page, totalPages: 1 };
+  
+  if (data.success && data.data) {
+    // Check if data.data is directly an array (from video/search)
+    if (Array.isArray(data.data)) {
+      videos = data.data;
+    } 
+    // Check if data.data has a videos property
+    else if (data.data.videos && Array.isArray(data.data.videos)) {
+      videos = data.data.videos;
+      pagination = {
+        page: Number(data.data.page) || page,
+        totalPages: Number(data.data.total_pages) || 1,
+      };
+    }
+    // Check if data.data has nested data
+    else if (data.data.data && Array.isArray(data.data.data)) {
+      videos = data.data.data;
+    }
+  } else if (data.data && Array.isArray(data.data)) {
+    // Fallback: if no success field but data exists
+    videos = data.data;
+  } else if (Array.isArray(data)) {
+    // Fallback: if response is directly an array
+    videos = data;
+  }
+  
+  // Exclude current video and limit to 20
+  return {
+    videos: videos.filter(v => String(v.id) !== String(currentVideo.id)),
+    pagination,
+    query: recQuery,
+  };
 }
 
 export default async function WatchPage({ params }) {
@@ -167,38 +196,30 @@ export default async function WatchPage({ params }) {
     );
   }
 
-  const recommendedVideos = await fetchRecommendedVideos(video);
+  const recommended = await fetchRecommendedVideos(video);
 
   return (
     <div className={styles.main}>
       <section className={styles.playerSection}>
-          <div className={styles.playerWrapper}>
-            <VideoPlayer
-              videoUrl={video.video_url}
-              thumbnailUrl={video.thumbnail_url}
-              title={video.title}
-            />
-          </div>
-          <h1 className={styles.title}>{video.title}</h1>
+          <VideoPlayerWithTracking
+            videoUrl={video.embed_url || video.video_url || video.url || video.embed || video.raw?.url || video.raw?.embed || ""}
+            thumbnailUrl={video.thumbnail_url || video.thumbnail || video.thumb || video.default_thumb || video.raw?.thumb || video.raw?.default_thumb || ""}
+            title={video.title || video.title_clean || "Untitled"}
+            videoId={video.id}
+          />
+          <h1 className={styles.title}>{video.title || video.title_clean || "Untitled"}</h1>
           <div className={styles.meta}>
-            {video.channel?.slug || video.channel_slug || video.channel?.name || video.channel_name ? (
-              <Link
-                href={`/channels/${encodeURIComponent(
-                  video.channel?.slug || video.channel_slug || video.channel?.name || video.channel_name
-                )}`}
-                className={styles.channelLink}
-              >
-                {video.channel_name || video.channel?.name || "Unknown channel"}
-              </Link>
-            ) : (
-              <span>{video.channel_name || "Unknown channel"}</span>
-            )}{" "}
-            • {typeof video.views === "number"
-              ? `${video.views} views`
-              : "No views yet"}
+            {video.channel_name || video.channel?.name ? (
+              <span>{video.channel_name || video.channel?.name}</span>
+            ) : null}
+            {video.views || video.view ? (
+              <span> • {typeof (video.views || video.view) === "number"
+                ? `${(video.views || video.view).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} views`
+                : "No views yet"}</span>
+            ) : null}
           </div>
-          {video.description ? (
-            <p className={styles.description}>{video.description}</p>
+          {video.description || video.desc ? (
+            <p className={styles.description}>{video.description || video.desc}</p>
           ) : null}
           
           {/* Actors */}
@@ -207,20 +228,10 @@ export default async function WatchPage({ params }) {
               <span className={styles.sectionLabel}>Actors: </span>
               <div className={styles.actorsList}>
                 {video.actors.map((actor, index) => {
-                  const actorSlug = actor?.slug || actor?.name || "";
                   const actorName = actor?.name || actor?.slug || "Actor";
                   return (
                     <span key={actor?.id || index}>
-                      {actorSlug ? (
-                        <Link
-                          href={`/actors/${encodeURIComponent(actorSlug)}`}
-                          className={styles.actorLink}
-                        >
-                          {actorName}
-                        </Link>
-                      ) : (
-                        <span>{actorName}</span>
-                      )}
+                      <span>{actorName}</span>
                       {index < video.actors.length - 1 && <span>, </span>}
                     </span>
                   );
@@ -232,12 +243,9 @@ export default async function WatchPage({ params }) {
           {/* Category and Tags */}
           <div className={styles.tagsRow}>
             {video.category ? (
-              <Link
-                href={`/categories/${encodeURIComponent(video.category)}`}
-                className={styles.tag}
-              >
+              <span className={styles.tag}>
                 #{video.category}
-              </Link>
+              </span>
             ) : null}
             {video.tags
               ? String(video.tags)
@@ -257,9 +265,19 @@ export default async function WatchPage({ params }) {
           </div>
         </section>
 
+        {/* Content Banner Ad */}
+        {shouldShowAd('HOME_CONTENT_BANNER_2') && (
+          <ContentBanner zoneId={EXOCLICK_ZONES.CONTENT_BANNER_2} />
+        )}
+
         {/* Recommended Videos */}
-        {recommendedVideos.length > 0 && (
-          <RecommendationsSection videos={recommendedVideos} />
+        {recommended?.videos?.length > 0 && (
+          <RecommendationsSection
+            initialVideos={recommended.videos}
+            query={recommended.query}
+            initialPage={recommended.pagination?.page || 1}
+            totalPages={recommended.pagination?.totalPages || 1}
+          />
         )}
     </div>
   );

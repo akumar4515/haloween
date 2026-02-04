@@ -6,6 +6,9 @@ import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import SearchBar from "./SearchBar";
 import AgeVerification from "./components/AgeVerification";
+import UserAuth from "./components/UserAuth";
+import { TopBanner, MobileBanner, ContentBanner } from "./components/BannerAd";
+import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
 
 export default function LayoutShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,6 +47,20 @@ export default function LayoutShell({ children }) {
         </button>
       </header>
 
+      {/* Top Banner Ad */}
+      {shouldShowAd('HOME_TOP_BANNER') && (
+        <div className={styles.topAdContainer}>
+          <TopBanner zoneId={EXOCLICK_ZONES.TOP_BANNER} />
+        </div>
+      )}
+
+      {/* Mobile Banner Ad */}
+      {shouldShowAd('HOME_MOBILE_BANNER') && (
+        <div className={styles.mobileAdContainer}>
+          <MobileBanner zoneId={EXOCLICK_ZONES.MOBILE_BANNER} />
+        </div>
+      )}
+
       <main className={styles.main}>
         {sidebarOpen && (
           <div
@@ -66,22 +83,32 @@ export default function LayoutShell({ children }) {
             <span className={styles.sidebarCloseIcon}>×</span>
           </button>
 
+          <UserAuth />
+
+          {/* Sidebar Banner Ad */}
+          {shouldShowAd('WATCH_SIDEBAR_BANNER') && (
+            <div className={styles.sidebarAd}>
+              <ContentBanner zoneId={EXOCLICK_ZONES.CONTENT_BANNER_1} />
+            </div>
+          )}
+
           <nav className={styles.navSection}>
             <h3 className={styles.navTitle}>Browse</h3>
             <ul className={styles.navList}>
               <li>
-                <Link href="/channels" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
-                  Channels
+                <Link href="/" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
+                  Home
                 </Link>
               </li>
+            </ul>
+          </nav>
+
+          <nav className={styles.navSection}>
+            <h3 className={styles.navTitle}>Library</h3>
+            <ul className={styles.navList}>
               <li>
-                <Link href="/categories" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
-                  Categories
-                </Link>
-              </li>
-              <li>
-                <Link href="/actors" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
-                  Actors
+                <Link href="/library" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
+                  My Library
                 </Link>
               </li>
             </ul>

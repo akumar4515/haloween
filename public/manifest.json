@@ -1,0 +1,43 @@
+{
+  "name": "Flovex - Free HD Adult Videos",
+  "short_name": "Flovex",
+  "description": "Watch free HD adult videos with fast streaming and mobile optimization",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050507",
+  "theme_color": "#ff5f9c",
+  "orientation": "portrait-primary",
+  "categories": ["entertainment", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Latest Videos",
+      "short_name": "Latest",
+      "description": "Browse latest adult videos",
+      "url": "/?q=newest",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Search Videos",
+      "short_name": "Search",
+      "description": "Search for adult videos",
+      "url": "/",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    }
+  ]
+}
