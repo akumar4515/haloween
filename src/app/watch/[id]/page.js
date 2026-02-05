@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import styles from "./watch.module.css";
 import RecommendationsSection from "./RecommendationsSection";
 import VideoPlayerWithTracking from "../../components/VideoPlayerWithTracking";
@@ -191,6 +192,100 @@ async function fetchRecommendedVideos(currentVideo, page = 1) {
     pagination,
     query: recQuery,
   };
+}
+
+// Generate SEO metadata from eporner video data
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  
+  try {
+    const video = await fetchVideo(id);
+    
+    if (!video) {
+      return {
+        title: "Video Not Found | Flovex",
+        description: "The requested video could not be found.",
+      };
+    }
+
+    const title = video.title || video.title_clean || "Untitled Video";
+    const description = video.description || video.desc || `Watch ${title} on Flovex. Free HD adult videos with fast streaming.`;
+    const thumbnail = video.thumbnail_url || video.thumbnail || video.thumb || video.default_thumb || "/logo.png";
+    const views = video.views || video.view || 0;
+    const duration = video.duration || video.length_sec || 0;
+    
+    // Format duration
+    const formatDuration = (seconds) => {
+      if (!seconds) return "";
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      if (hours > 0) return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const videoUrl = `${siteUrl}/watch/${id}`;
+    const formattedDuration = formatDuration(duration);
+    const viewsText = typeof views === "number" 
+      ? `${views.toLocaleString()} views` 
+      : views || "0 views";
+
+    return {
+      title: `${title} | Flovex`,
+      description: description.length > 160 ? description.substring(0, 157) + "..." : description,
+      keywords: video.keywords || video.tags || video.category || undefined,
+      openGraph: {
+        title: title,
+        description: description,
+        url: videoUrl,
+        siteName: "Flovex",
+        images: [
+          {
+            url: thumbnail,
+            width: 1280,
+            height: 720,
+            alt: title,
+          },
+        ],
+        type: "video.other",
+        videos: [
+          {
+            url: video.video_url || video.embed_url || videoUrl,
+            width: 1280,
+            height: 720,
+            type: "video/mp4",
+          },
+        ],
+      },
+      twitter: {
+        card: "player",
+        title: title,
+        description: description,
+        images: [thumbnail],
+        players: {
+          playerUrl: videoUrl,
+          width: 1280,
+          height: 720,
+        },
+      },
+      other: {
+        "video:duration": duration ? String(duration) : undefined,
+        "video:release_date": video.added || video.created_at || undefined,
+        "video:view_count": String(views),
+        "og:video:duration": formattedDuration,
+      },
+      alternates: {
+        canonical: videoUrl,
+      },
+    };
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    return {
+      title: "Video | Flovex",
+      description: "Watch free HD adult videos on Flovex.",
+    };
+  }
 }
 
 export default async function WatchPage({ params }) {

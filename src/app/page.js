@@ -7,8 +7,28 @@ import AdProviderBanner from "./components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
 
 export const metadata = {
-  title: "Home",
-  description: "Browse the latest trending videos on Flovex.",
+  title: "Flovex - Free HD Adult Videos",
+  description: "Watch free HD adult videos on Flovex. Browse thousands of high-quality porn videos with fast streaming, mobile optimization, and regular updates. Discover trending videos, newest releases, and popular content.",
+  keywords: ["free porn", "adult videos", "HD porn", "porn streaming", "adult entertainment", "free adult videos", "porn videos", "adult content"],
+  openGraph: {
+    title: "Flovex - Free HD Adult Videos",
+    description: "Watch free HD adult videos on Flovex. Browse thousands of high-quality porn videos with fast streaming.",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    siteName: "Flovex",
+    images: [{
+      url: "/logo.png",
+      width: 400,
+      height: 400,
+      alt: "Flovex Logo"
+    }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Flovex - Free HD Adult Videos",
+    description: "Watch free HD adult videos on Flovex. Browse thousands of high-quality porn videos.",
+    images: ["/logo.png"]
+  },
 };
 
 const NEWEST_KEYS = ["new", "newest", "latest", "recent"];
