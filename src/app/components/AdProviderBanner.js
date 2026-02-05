@@ -37,29 +37,9 @@ export default function AdProviderBanner({
     window.AdProvider = window.AdProvider || [];
     window.AdProvider.push({ serve: {} });
 
-    // Check if ad loaded after a delay and hide container if no ad content
-    const checkAdLoaded = setTimeout(() => {
-      if (containerRef.current) {
-        const ins = containerRef.current.querySelector("ins");
-        if (ins) {
-          const hasAdContent = ins.offsetHeight > 0 || 
-                               ins.innerHTML.trim() !== "" ||
-                               ins.querySelector("iframe") ||
-                               ins.querySelector("img") ||
-                               ins.querySelector("a");
-          
-          // Hide container if no ad content loaded
-          if (!hasAdContent) {
-            containerRef.current.style.display = "none";
-          }
-        } else {
-          // No ins element, hide container
-          containerRef.current.style.display = "none";
-        }
-      }
-    }, 5000); // Check after 5 seconds to allow ad to load
-
-    return () => clearTimeout(checkAdLoaded);
+    // Don't hide ads automatically - let the ad provider handle visibility
+    // Ads may load dynamically and checking offsetHeight can be unreliable
+    // when scrolling (element might be out of viewport temporarily)
   }, [adClassName, zoneId]);
 
   return (
@@ -72,6 +52,8 @@ export default function AdProviderBanner({
         alignItems: "center",
         margin: "16px 0",
         minHeight: 0, // No minimum height - let ad determine size
+        visibility: "visible", // Ensure container is always visible
+        opacity: 1, // Ensure container is not transparent
       }}
     />
   );
