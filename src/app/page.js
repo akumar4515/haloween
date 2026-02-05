@@ -3,6 +3,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import VideoCard from "./components/VideoCard";
 import { ContentBanner } from "./components/BannerAd";
+import AdProviderBanner from "./components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
 
 export const metadata = {
@@ -213,7 +214,16 @@ async function VideoGrid({ searchParams }) {
 
       {/* Content Banner Ad */}
       {shouldShowAd('HOME_CONTENT_BANNER_1') && (
-        <ContentBanner zoneId={EXOCLICK_ZONES.CONTENT_BANNER_1} />
+        <AdProviderBanner
+          zoneId={
+            process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_ZONE_ID ||
+            "5846062"
+          }
+          adClassName={
+            process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_CLASS ||
+            "eas6a97888e2"
+          }
+        />
       )}
 
       <div className={styles.grid}>

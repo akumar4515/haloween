@@ -6,7 +6,8 @@ import styles from "./page.module.css";
 import SearchBar from "./SearchBar";
 import AgeVerification from "./components/AgeVerification";
 import UserAuth from "./components/UserAuth";
-import { TopBanner, MobileBanner, ContentBanner } from "./components/BannerAd";
+import { MobileBanner, ContentBanner } from "./components/BannerAd";
+import AdProviderBanner from "./components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
 
 export default function LayoutShell({ children }) {
@@ -53,14 +54,23 @@ export default function LayoutShell({ children }) {
       {/* Top Banner Ad */}
       {shouldShowAd('HOME_TOP_BANNER') && (
         <div className={styles.topAdContainer}>
-          <TopBanner zoneId={EXOCLICK_ZONES.TOP_BANNER} />
+          <AdProviderBanner />
         </div>
       )}
 
       {/* Mobile Banner Ad */}
       {shouldShowAd('HOME_MOBILE_BANNER') && (
         <div className={styles.mobileAdContainer}>
-          <MobileBanner zoneId={EXOCLICK_ZONES.MOBILE_BANNER} />
+          <AdProviderBanner
+            zoneId={
+              process.env.NEXT_PUBLIC_ADPROVIDER_MOBILE_BANNER_ZONE_ID ||
+              "5846066"
+            }
+            adClassName={
+              process.env.NEXT_PUBLIC_ADPROVIDER_MOBILE_BANNER_CLASS ||
+              "eas6a97888e10"
+            }
+          />
         </div>
       )}
 
@@ -91,7 +101,16 @@ export default function LayoutShell({ children }) {
           {/* Sidebar Banner Ad */}
           {shouldShowAd('WATCH_SIDEBAR_BANNER') && (
             <div className={styles.sidebarAd}>
-              <ContentBanner zoneId={EXOCLICK_ZONES.CONTENT_BANNER_1} />
+              <AdProviderBanner
+                zoneId={
+                  process.env.NEXT_PUBLIC_ADPROVIDER_SIDEBAR_BANNER_ZONE_ID ||
+                  "5846060"
+                }
+                adClassName={
+                  process.env.NEXT_PUBLIC_ADPROVIDER_SIDEBAR_BANNER_CLASS ||
+                  "eas6a97888e2"
+                }
+              />
             </div>
           )}
 
