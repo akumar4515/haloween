@@ -6,6 +6,12 @@ import { ContentBanner } from "../../components/BannerAd";
 import AdProviderBanner from "../../components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "../../config/ads";
 
+const getApiRoot = () => {
+  const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const normalized = raw.replace(/\/+$/, "");
+  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
+};
+
 // Helper function to detect and convert embedded URLs
 function getEmbedUrl(url) {
   if (!url) return null;
@@ -45,22 +51,27 @@ function getEmbedUrl(url) {
 
 
 async function fetchVideo(id) {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+  const apiRoot = getApiRoot();
 
   // Use eporner API to fetch video by ID
-  const url = new URL(`${baseUrl}/api/eporner/videos/${id}`, "http://localhost");
+  const url = new URL(`${apiRoot}/eporner/videos/${id}`);
   url.searchParams.set("thumbsize", "big");
   
   const res = await fetch(url.toString(), { cache: "no-store" });
   if (!res.ok) {
-    throw new Error("Failed to fetch video");
+    if (process.env.NODE_ENV === "development") {
+      console.error(`Failed to fetch video (${res.status}):`, url.toString());
+    }
+    return null;
   }
   
   const contentType = res.headers.get("content-type");
   if (!contentType || !contentType.includes("application/json")) {
-    const text = await res.text();
-    throw new Error(`Server returned non-JSON: ${text}`);
+    if (process.env.NODE_ENV === "development") {
+      const text = await res.text();
+      console.error("Server returned non-JSON:", text.substring(0, 200));
+    }
+    return null;
   }
   
   const data = await res.json();
@@ -99,11 +110,10 @@ async function fetchRecommendedVideos(currentVideo, page = 1) {
     return { videos: [], pagination: { page: 1, totalPages: 1 }, query: "" };
   }
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const apiRoot = getApiRoot();
 
   // Use eporner API for recommendations
-  const searchUrl = new URL(`${baseUrl}/api/eporner/videos/search`, "http://localhost");
+  const searchUrl = new URL(`${apiRoot}/eporner/videos/search`);
   
   // Use keywords (preferred) or category/tags for recommendations
   let recQuery = "";

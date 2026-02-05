@@ -6,6 +6,12 @@ import VideoCard from "../../components/VideoCard";
 
 const PAGE_SIZE = 20;
 
+const getApiRoot = () => {
+  const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const normalized = raw.replace(/\/+$/, "");
+  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
+};
+
 export default function RecommendationsSection({
   initialVideos,
   query,
@@ -23,10 +29,9 @@ export default function RecommendationsSection({
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+      const apiRoot = getApiRoot();
       const nextPage = page + 1;
-      const url = new URL(`${baseUrl}/api/eporner/videos/search`, "http://localhost");
+      const url = new URL(`${apiRoot}/eporner/videos/search`);
       if (query) {
         url.searchParams.set("query", query);
       }
