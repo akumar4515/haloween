@@ -18,6 +18,7 @@ export default function UserAuth({ onAuthChange }) {
   const handleGoogleLogin = () => {
     // Get Google OAuth URL from backend
     const googleAuthUrl = `${API_BASE}/api/auth/google`;
+    localStorage.setItem("authReturnTo", window.location.href);
     
     // Open Google OAuth in popup
     const popup = window.open(
@@ -66,7 +67,7 @@ export default function UserAuth({ onAuthChange }) {
               id: data.user.id,
               email: data.user.email,
               name: data.user.name,
-              profile_pic: data.user.picture,
+              profile_pic: null,
             };
             
             login(userData, token);
@@ -87,11 +88,18 @@ export default function UserAuth({ onAuthChange }) {
       if (event.origin !== window.location.origin) return;
 
       if (event.data.type === "GOOGLE_AUTH_SUCCESS") {
-        const { user: userData, token } = event.data;
+        const { user: userData, token, returnTo } = event.data;
         login(userData, token);
         if (onAuthChange) onAuthChange(userData);
+        const fallback = localStorage.getItem("authReturnTo");
+        const target = returnTo || fallback;
+        if (target) {
+          localStorage.removeItem("authReturnTo");
+          window.location.href = target;
+        }
       } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
         console.error("Google auth error:", event.data.error);
+        localStorage.removeItem("authReturnTo");
         alert(`Authentication failed: ${event.data.error || "Unknown error"}`);
       }
     };

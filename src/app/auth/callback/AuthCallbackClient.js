@@ -71,16 +71,19 @@ export default function AuthCallbackClient() {
           })
         );
 
+        const returnTo = localStorage.getItem("authReturnTo");
+        localStorage.removeItem("authReturnTo");
+
         if (window.opener && !window.opener.closed) {
           window.opener.postMessage(
-            { type: "GOOGLE_AUTH_SUCCESS", token, user },
+            { type: "GOOGLE_AUTH_SUCCESS", token, user, returnTo },
             window.location.origin
           );
           window.close();
           return;
         }
 
-        window.location.replace("/");
+        window.location.replace(returnTo || "/");
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Authentication failed";
