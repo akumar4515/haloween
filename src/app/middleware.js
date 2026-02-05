@@ -15,6 +15,7 @@ export function middleware(request) {
     pathname.startsWith('/sw.js') ||
     pathname.startsWith('/manifest.json') ||
     pathname.startsWith('/video-sitemap.xml') ||
+    pathname.startsWith('/auth') ||
     pathname.startsWith('/admin') ||
     pathname.includes('.')
   ) {
