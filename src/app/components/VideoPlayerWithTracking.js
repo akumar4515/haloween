@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useWatchHistory } from "../hooks/useWatchHistory";
-import { useUser } from "../contexts/UserContext";
 import { VideoPreRollAd } from "./PreVideoAd";
 import { shouldShowAd, EXOCLICK_ZONES } from "../config/ads";
 import styles from "./VideoPlayer.module.css";
@@ -92,11 +90,6 @@ function getEmbedUrl(url) {
 }
 
 export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title, videoId }) {
-  const { isAuthenticated } = useUser();
-  const { addWatchHistory } = useWatchHistory();
-  const progressIntervalRef = useRef(null);
-  const lastProgressRef = useRef(0);
-  const hasTrackedRef = useRef(false);
   const videoRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -147,75 +140,6 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
     }
   }, [videoUrl, videoId]);
 
-  useEffect(() => {
-    // Track video view even if not authenticated (optional)
-    if (!videoId) return;
-
-    // Track initial view
-    const trackInitialView = async () => {
-      if (!hasTrackedRef.current) {
-        hasTrackedRef.current = true;
-        await addWatchHistory(videoId, 0, false);
-      }
-    };
-
-    // Small delay to ensure video is loading
-    const timer = setTimeout(() => {
-      trackInitialView();
-    }, 2000);
-
-    // For iframe videos (YouTube, Vimeo), we can't track progress accurately
-    // So we just track the view
-    const embedUrl = getEmbedUrl(videoUrl);
-    if (embedUrl) {
-      // For embedded videos, track view after 5 seconds
-      const viewTimer = setTimeout(() => {
-        trackInitialView();
-      }, 5000);
-      return () => {
-        clearTimeout(timer);
-        clearTimeout(viewTimer);
-      };
-    }
-
-    // For native video elements, track progress
-    const videoElement = videoRef.current || document.querySelector('video');
-    if (videoElement) {
-      const updateProgress = async () => {
-        if (videoElement.readyState >= 2) {
-          const currentTime = Math.floor(videoElement.currentTime);
-          const duration = Math.floor(videoElement.duration);
-          
-          if (currentTime > lastProgressRef.current) {
-            lastProgressRef.current = currentTime;
-            
-            // Update watch history every 10 seconds
-            if (currentTime % 10 === 0 || currentTime === duration) {
-              const completed = currentTime >= duration * 0.9; // 90% watched = completed
-              await addWatchHistory(videoId, currentTime, completed);
-            }
-          }
-        }
-      };
-
-      videoElement.addEventListener('timeupdate', updateProgress);
-      videoElement.addEventListener('ended', async () => {
-        await addWatchHistory(videoId, Math.floor(videoElement.duration), true);
-      });
-
-      return () => {
-        videoElement.removeEventListener('timeupdate', updateProgress);
-        clearTimeout(timer);
-      };
-    }
-
-    return () => {
-      clearTimeout(timer);
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
-    };
-  }, [isAuthenticated, videoId, videoUrl, addWatchHistory]);
 
   // Early check: if no video URL, show error
   if (!videoUrl || videoUrl.trim() === "") {

@@ -1,10 +1,8 @@
-import Link from "next/link";
 import styles from "./watch.module.css";
 import RecommendationsSection from "./RecommendationsSection";
 import VideoPlayerWithTracking from "../../components/VideoPlayerWithTracking";
-import { ContentBanner } from "../../components/BannerAd";
 import AdProviderBanner from "../../components/AdProviderBanner";
-import { shouldShowAd, EXOCLICK_ZONES } from "../../config/ads";
+import { shouldShowAd } from "../../config/ads";
 
 const getApiRoot = () => {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -220,60 +218,17 @@ export default async function WatchPage({ params }) {
           />
           <h1 className={styles.title}>{video.title || video.title_clean || "Untitled"}</h1>
           <div className={styles.meta}>
-            {video.channel_name || video.channel?.name ? (
-              <span>{video.channel_name || video.channel?.name}</span>
-            ) : null}
             {video.views || video.view ? (
-              <span> • {typeof (video.views || video.view) === "number"
+              <span>{typeof (video.views || video.view) === "number"
                 ? `${(video.views || video.view).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} views`
                 : "No views yet"}</span>
-            ) : null}
+            ) : (
+              <span>No views yet</span>
+            )}
           </div>
           {video.description || video.desc ? (
             <p className={styles.description}>{video.description || video.desc}</p>
           ) : null}
-          
-          {/* Actors */}
-          {video.actors && Array.isArray(video.actors) && video.actors.length > 0 ? (
-            <div className={styles.actorsSection}>
-              <span className={styles.sectionLabel}>Actors: </span>
-              <div className={styles.actorsList}>
-                {video.actors.map((actor, index) => {
-                  const actorName = actor?.name || actor?.slug || "Actor";
-                  return (
-                    <span key={actor?.id || index}>
-                      <span>{actorName}</span>
-                      {index < video.actors.length - 1 && <span>, </span>}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          {/* Category and Tags */}
-          <div className={styles.tagsRow}>
-            {video.category ? (
-              <span className={styles.tag}>
-                #{video.category}
-              </span>
-            ) : null}
-            {video.tags
-              ? String(video.tags)
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean)
-                  .map((tag) => (
-                    <Link
-                      key={tag}
-                      href={`/?q=${encodeURIComponent(tag)}`}
-                      className={styles.tag}
-                    >
-                      #{tag}
-                    </Link>
-                  ))
-              : null}
-          </div>
         </section>
 
         {/* Content Banner Ad */}

@@ -1,11 +1,10 @@
 // Service Worker for caching and performance optimization
-const CACHE_NAME = 'flovex-v1';
-const STATIC_CACHE = 'flovex-static-v1';
-const DYNAMIC_CACHE = 'flovex-dynamic-v1';
+const CACHE_NAME = 'flovex-v2';
+const STATIC_CACHE = 'flovex-static-v2';
+const DYNAMIC_CACHE = 'flovex-dynamic-v2';
 
 // Resources to cache immediately
 const STATIC_ASSETS = [
-  '/',
   '/logo.png',
   '/manifest.json',
   '/favicon.ico'
@@ -41,6 +40,14 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
+
+  // Always fetch latest HTML for navigations
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request) || caches.match('/'))
+    );
+    return;
+  }
 
   // Cache images aggressively
   if (request.destination === 'image') {

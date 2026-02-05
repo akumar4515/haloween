@@ -12,12 +12,6 @@ export default function sitemap() {
       priority: 1,
     },
     {
-      url: `${siteUrl}/library`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
-    {
       url: `${siteUrl}/privacy-policy`,
       lastModified: now,
       changeFrequency: "yearly",

@@ -22,19 +22,10 @@ export default function VideoCard({ video }) {
     video_url,
     embed_url,
     duration,
-    channel_name,
-    channel_slug,
-    channel,
-    channel_id,
     views,
     view_count,
     created_at,
     added,
-    category,
-    categories,
-    actors,
-    stars,
-    performers,
   } = video;
 
   // Map API fields to expected fields
@@ -45,8 +36,6 @@ export default function VideoCard({ video }) {
   const videoDuration = duration || 0;
   const videoViews = views || view_count || 0;
   const videoCreatedAt = created_at || added || null;
-  const videoCategory = category || (categories && Array.isArray(categories) ? categories[0] : null) || null;
-  const videoActors = actors || stars || performers || [];
 
   // Extract video URL for preview - need direct video file URL, not embed
   // Backend formats video_url (for embed) and embed_url, but we need direct video file for preview
@@ -86,21 +75,6 @@ export default function VideoCard({ video }) {
 
   const minutes = videoDuration ? Math.floor(videoDuration / 60) : null;
   const seconds = videoDuration ? videoDuration % 60 : null;
-
-  // Get channel name for display (no linking)
-  let displayChannelName = "";
-  
-  if (channel) {
-    if (typeof channel === "string") {
-      displayChannelName = channel;
-    } else if (typeof channel === "object") {
-      displayChannelName = channel?.name || channel?.slug || channel?.title || "";
-    }
-  }
-  
-  if (!displayChannelName) {
-    displayChannelName = channel_name || channel_slug || "";
-  }
 
   // Format date consistently to avoid hydration mismatches
   const formatDate = (dateString) => {
@@ -208,47 +182,15 @@ export default function VideoCard({ video }) {
       <div className={styles.cardBody}>
         <h3 className={styles.cardTitle}>{videoTitle || "Untitled"}</h3>
         <p className={styles.cardMeta}>
-          {displayChannelName ? `${displayChannelName} • ` : ""}
-          {typeof videoViews === "number" && videoViews > 0 ? `${formatNumber(videoViews)} views` : "No views yet"}
+          {typeof videoViews === "number" && videoViews > 0
+            ? `${formatNumber(videoViews)} views`
+            : "No views yet"}
         </p>
         {videoCreatedAt ? (
           <p className={styles.cardDate}>
             {formatDate(videoCreatedAt)}
           </p>
         ) : null}
-        {(videoCategory || (videoActors && Array.isArray(videoActors) && videoActors.length > 0)) && (
-          <div className={styles.cardTags}>
-            {videoCategory && (
-              <span className={styles.cardTag}>
-                {videoCategory}
-              </span>
-            )}
-            {videoActors && Array.isArray(videoActors) && videoActors.length > 0 && (
-              <span className={styles.cardActors}>
-                {videoActors.slice(0, 2).map((actor, index) => {
-                  // Handle actor as string or object
-                  let actorName = "Actor";
-                  
-                  if (typeof actor === "string") {
-                    actorName = actor;
-                  } else if (typeof actor === "object") {
-                    actorName = actor?.name || actor?.slug || actor?.title || "Actor";
-                  }
-                  
-                  return (
-                    <span key={actor?.id || actor?.slug || actor?.name || index}>
-                      <span>{actorName}</span>
-                      {index < Math.min(videoActors.length, 2) - 1 && <span>, </span>}
-                    </span>
-                  );
-                })}
-                {videoActors.length > 2 && (
-                  <span className={styles.cardMoreActors}> +{videoActors.length - 2}</span>
-                )}
-              </span>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

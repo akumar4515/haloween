@@ -123,17 +123,6 @@ export default function LayoutShell({ children }) {
           </nav>
 
           <nav className={styles.navSection}>
-            <h3 className={styles.navTitle}>Library</h3>
-            <ul className={styles.navList}>
-              <li>
-                <Link href="/library" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
-                  My Library
-                </Link>
-              </li>
-            </ul>
-          </nav>
-
-          <nav className={styles.navSection}>
             <h3 className={styles.navTitle}>Legal</h3>
             <ul className={styles.navList}>
               <li>

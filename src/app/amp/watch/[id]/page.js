@@ -296,21 +296,6 @@ export default async function AMPWatchPage({ params }) {
               <p className="video-description">{videoDescription}</p>
             )}
 
-            {/* Tags */}
-            {(video.tags || video.category) && (
-              <div className="tags">
-                {video.category && (
-                  <a href={`/amp/?q=${encodeURIComponent(video.category)}`} className="tag">
-                    #{video.category}
-                  </a>
-                )}
-                {video.tags && String(video.tags).split(",").slice(0, 5).map((tag, index) => (
-                  <a key={index} href={`/amp/?q=${encodeURIComponent(tag.trim())}`} className="tag">
-                    #{tag.trim()}
-                  </a>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Recommendations */}
