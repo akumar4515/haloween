@@ -7,7 +7,7 @@ import styles from "./UserAuth.module.css";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function UserAuth({ onAuthChange }) {
-  const { user, loading, login, logout, checkAuth } = useUser();
+  const { user, loading, logout } = useUser();
 
   useEffect(() => {
     if (onAuthChange) {
@@ -28,95 +28,6 @@ export default function UserAuth({ onAuthChange }) {
     logout();
     if (onAuthChange) onAuthChange(null);
   };
-
-  const handleAuthCallback = async (token) => {
-    try {
-      // Fetch user data from backend
-      const res = await fetch(`${API_BASE}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const data = await res.json();
-          if (data.success && data.user) {
-            const userData = {
-              id: data.user.id,
-              email: data.user.email,
-              name: data.user.name,
-              profile_pic: null,
-            };
-            
-            login(userData, token);
-            if (onAuthChange) onAuthChange(userData);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error handling auth callback:", error);
-      alert("Failed to complete authentication. Please try again.");
-    }
-  };
-
-  // Listen for auth success/error message from OAuth callback popup
-  useEffect(() => {
-    const handleMessage = (event) => {
-      // Only accept messages from same origin
-      if (event.origin !== window.location.origin) return;
-
-      if (event.data.type === "GOOGLE_AUTH_SUCCESS") {
-        const { user: userData, token, returnTo } = event.data;
-        login(userData, token);
-        if (onAuthChange) onAuthChange(userData);
-        const fallback = localStorage.getItem("authReturnTo");
-        const target = returnTo || fallback;
-        if (target) {
-          localStorage.removeItem("authReturnTo");
-          window.location.href = target;
-        }
-      } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
-        console.error("Google auth error:", event.data.error);
-        localStorage.removeItem("authReturnTo");
-        alert(`Authentication failed: ${event.data.error || "Unknown error"}`);
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [onAuthChange, login]);
-
-  // Fallback for popup flow when window.opener is unavailable
-  useEffect(() => {
-    const handleStorage = (event) => {
-      if (event.key !== "authResult" || !event.newValue) return;
-      try {
-        const payload = JSON.parse(event.newValue);
-        if (payload?.status === "success") {
-          checkAuth();
-          const fallback = localStorage.getItem("authReturnTo");
-          const target = payload.returnTo || fallback;
-          if (target) {
-            localStorage.removeItem("authReturnTo");
-            window.location.href = target;
-          }
-        } else if (payload?.status === "error") {
-          localStorage.removeItem("authReturnTo");
-          alert(`Authentication failed: ${payload.error || "Unknown error"}`);
-        }
-      } catch (err) {
-        console.error("Failed to process authResult:", err);
-      } finally {
-        localStorage.removeItem("authResult");
-      }
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, [checkAuth]);
-
 
   if (loading) {
     return (

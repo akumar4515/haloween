@@ -12,37 +12,20 @@ export default function AuthCallbackClient() {
   useEffect(() => {
     const token = searchParams.get("token");
     const error = searchParams.get("error");
-
-    const sendError = (message) => {
-      localStorage.setItem(
-        "authResult",
-        JSON.stringify({
-          status: "error",
-          error: message,
-          returnTo: localStorage.getItem("authReturnTo"),
-          timestamp: Date.now(),
-        })
-      );
-
-      if (window.opener && !window.opener.closed) {
-        window.opener.postMessage(
-          { type: "GOOGLE_AUTH_ERROR", error: message },
-          window.location.origin
-        );
-        window.close();
-      }
-    };
+    const returnTo = localStorage.getItem("authReturnTo") || "/";
 
     const handleAuth = async () => {
       if (error) {
         setStatus(`Authentication failed: ${error}`);
-        sendError(error);
+        localStorage.removeItem("authReturnTo");
+        window.location.replace(returnTo);
         return;
       }
 
       if (!token) {
         setStatus("Authentication failed: Missing token");
-        sendError("Missing token");
+        localStorage.removeItem("authReturnTo");
+        window.location.replace(returnTo);
         return;
       }
 
@@ -81,32 +64,14 @@ export default function AuthCallbackClient() {
           })
         );
 
-        const returnTo = localStorage.getItem("authReturnTo");
-        localStorage.setItem(
-          "authResult",
-          JSON.stringify({
-            status: "success",
-            returnTo,
-            timestamp: Date.now(),
-          })
-        );
         localStorage.removeItem("authReturnTo");
-
-        if (window.opener && !window.opener.closed) {
-          window.opener.postMessage(
-            { type: "GOOGLE_AUTH_SUCCESS", token, user, returnTo },
-            window.location.origin
-          );
-          window.close();
-          return;
-        }
-
-        window.location.replace(returnTo || "/");
+        window.location.replace(returnTo);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Authentication failed";
         setStatus(`Authentication failed: ${message}`);
-        sendError(message);
+        localStorage.removeItem("authReturnTo");
+        window.location.replace(returnTo);
       }
     };
 

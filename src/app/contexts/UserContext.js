@@ -21,6 +21,12 @@ export function UserProvider({ children }) {
       if (authData) {
         const parsed = JSON.parse(authData);
         const storedToken = parsed.token;
+        const storedUser = parsed.user;
+
+        if (storedUser && storedToken) {
+          setUser(storedUser);
+          setToken(storedToken);
+        }
         
         if (storedToken) {
           // Verify token with backend
@@ -50,13 +56,25 @@ export function UserProvider({ children }) {
                 }
               }
             }
+            localStorage.removeItem("userAuth");
+            setUser(null);
+            setToken(null);
           } catch (error) {
             console.error("Error verifying token:", error);
+            localStorage.removeItem("userAuth");
+            setUser(null);
+            setToken(null);
           }
         }
+      } else {
+        setUser(null);
+        setToken(null);
       }
     } catch (error) {
       console.error("Error checking auth:", error);
+      localStorage.removeItem("userAuth");
+      setUser(null);
+      setToken(null);
     } finally {
       setLoading(false);
     }
