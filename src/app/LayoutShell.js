@@ -5,7 +5,6 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import SearchBar from "./SearchBar";
 import AgeVerification from "./components/AgeVerification";
-import UserAuth from "./components/UserAuth";
 import { MobileBanner, ContentBanner } from "./components/BannerAd";
 import AdProviderBanner from "./components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
@@ -95,8 +94,6 @@ export default function LayoutShell({ children }) {
           >
             <span className={styles.sidebarCloseIcon}>×</span>
           </button>
-
-          <UserAuth />
 
           {/* Sidebar Banner Ad */}
           {shouldShowAd('WATCH_SIDEBAR_BANNER') && (
