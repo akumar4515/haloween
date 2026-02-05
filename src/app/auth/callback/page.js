@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "../../contexts/UserContext";
 
+export const dynamic = "force-dynamic";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function AuthCallbackPage() {
