@@ -26,14 +26,19 @@ export default function UserAuth({ onAuthChange }) {
       "width=500,height=600,scrollbars=yes,resizable=yes"
     );
 
+    if (!popup) {
+      alert("Please allow popups for this site to login");
+      return;
+    }
+
     // Listen for popup to close (user completed auth)
     const checkClosed = setInterval(() => {
       if (popup.closed) {
         clearInterval(checkClosed);
-        // Re-check auth status
+        // Re-check auth status after popup closes
         setTimeout(() => {
           checkAuth();
-        }, 500);
+        }, 1000);
       }
     }, 500);
   };

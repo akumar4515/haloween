@@ -59,19 +59,29 @@ export default function AuthCallbackClient() {
                 // Update user context
                 login(userData, token);
 
-                if (window.opener) {
+                // Check if we're in a popup window
+                const isPopup = window.opener && !window.opener.closed;
+                
+                if (isPopup) {
                   // Popup window - send message and close
-                  window.opener.postMessage(
-                    {
-                      type: "GOOGLE_AUTH_SUCCESS",
-                      user: userData,
-                      token: token,
-                    },
-                    window.location.origin
-                  );
-                  setTimeout(() => {
+                  try {
+                    window.opener.postMessage(
+                      {
+                        type: "GOOGLE_AUTH_SUCCESS",
+                        user: userData,
+                        token: token,
+                      },
+                      window.location.origin
+                    );
+                    // Close popup after a short delay
+                    setTimeout(() => {
+                      window.close();
+                    }, 300);
+                  } catch (postMessageError) {
+                    console.error("Error sending message to opener:", postMessageError);
+                    // Fallback: try to close and let parent check auth
                     window.close();
-                  }, 500);
+                  }
                 } else {
                   // Full page redirect - redirect to home and refresh
                   router.push("/?auth=success");
@@ -81,12 +91,20 @@ export default function AuthCallbackClient() {
                   }, 100);
                 }
                 return;
+              } else {
+                console.error("User data not found in response:", data);
               }
+            } else {
+              console.error("Invalid content type:", contentType);
             }
+          } else {
+            const errorText = await res.text().catch(() => "Unknown error");
+            console.error("Failed to fetch user data:", res.status, errorText);
           }
 
           // Failed to fetch user data
-          if (window.opener) {
+          const isPopup = window.opener && !window.opener.closed;
+          if (isPopup) {
             window.opener.postMessage(
               {
                 type: "GOOGLE_AUTH_ERROR",
@@ -94,13 +112,16 @@ export default function AuthCallbackClient() {
               },
               window.location.origin
             );
-            window.close();
+            setTimeout(() => {
+              window.close();
+            }, 300);
           } else {
             router.push("/?auth=error&message=" + encodeURIComponent("Failed to fetch user data"));
           }
         } catch (err) {
           console.error("Error handling auth callback:", err);
-          if (window.opener) {
+          const isPopup = window.opener && !window.opener.closed;
+          if (isPopup) {
             window.opener.postMessage(
               {
                 type: "GOOGLE_AUTH_ERROR",
@@ -108,17 +129,30 @@ export default function AuthCallbackClient() {
               },
               window.location.origin
             );
-            window.close();
+            setTimeout(() => {
+              window.close();
+            }, 300);
           } else {
             router.push("/?auth=error&message=" + encodeURIComponent(err.message || "Unknown error"));
           }
         }
       } else {
         // No token or success
-        if (window.opener) {
-          window.close();
+        console.warn("No token or success parameter found", { token, success });
+        const isPopup = window.opener && !window.opener.closed;
+        if (isPopup) {
+          window.opener.postMessage(
+            {
+              type: "GOOGLE_AUTH_ERROR",
+              error: "Authentication failed: No token received",
+            },
+            window.location.origin
+          );
+          setTimeout(() => {
+            window.close();
+          }, 300);
         } else {
-          router.push("/");
+          router.push("/?auth=error&message=" + encodeURIComponent("No token received"));
         }
       }
     };

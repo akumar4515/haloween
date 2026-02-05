@@ -25,7 +25,7 @@ export default function GoogleCallbackClient() {
 
       if (code) {
         try {
-          const backendCallbackUrl = `${API_BASE}/auth/google/callback?code=${encodeURIComponent(
+          const backendCallbackUrl = `${API_BASE}/api/auth/google/callback?code=${encodeURIComponent(
             code
           )}`;
           window.location.href = backendCallbackUrl;
