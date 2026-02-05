@@ -40,7 +40,7 @@ export function UserProvider({ children }) {
                     id: data.user.id,
                     email: data.user.email,
                     name: data.user.name,
-                    profile_pic: data.user.picture,
+                    profile_pic: null,
                   };
                   
                   setUser(userData);

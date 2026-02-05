@@ -53,7 +53,7 @@ export default function AuthCallbackClient() {
               id: data.user.id,
               email: data.user.email,
               name: data.user.name,
-              profile_pic: data.user.picture,
+              profile_pic: null,
             }
           : null;
 
