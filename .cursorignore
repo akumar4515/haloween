@@ -1,0 +1,41 @@
+# Cursor ignore file
+# This file controls which files Cursor AI can access
+
+# Allow .env files for AI features
+# .env files are NOT ignored here
+
+# Ignore node_modules
+node_modules/
+**/node_modules/
+
+# Ignore build outputs
+.next/
+out/
+build/
+dist/
+
+# Ignore cache
+.cache/
+*.cache
+
+# Ignore logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

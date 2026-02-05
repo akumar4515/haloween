@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "../../contexts/UserContext";
 
 export default function AuthCallbackClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { login } = useUser();
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -22,8 +24,11 @@ export default function AuthCallbackClient() {
             },
             window.location.origin
           );
+          window.close();
+        } else {
+          // Full page redirect - redirect to home with error
+          router.push("/?auth=error&message=" + encodeURIComponent(error));
         }
-        window.close();
         return;
       }
 
@@ -31,7 +36,7 @@ export default function AuthCallbackClient() {
         try {
           const API_BASE =
             process.env.NEXT_PUBLIC_API_BASE_URL ||
-            "http://localhost:5000";
+            "http://localhost:5000/api";
 
           const res = await fetch(`${API_BASE}/auth/me`, {
             headers: {
@@ -51,17 +56,11 @@ export default function AuthCallbackClient() {
                   profile_pic: data.user.picture,
                 };
 
-                localStorage.setItem(
-                  "userAuth",
-                  JSON.stringify({
-                    authenticated: true,
-                    token: token,
-                    user: userData,
-                    timestamp: Date.now(),
-                  })
-                );
+                // Update user context
+                login(userData, token);
 
                 if (window.opener) {
+                  // Popup window - send message and close
                   window.opener.postMessage(
                     {
                       type: "GOOGLE_AUTH_SUCCESS",
@@ -70,16 +69,23 @@ export default function AuthCallbackClient() {
                     },
                     window.location.origin
                   );
+                  setTimeout(() => {
+                    window.close();
+                  }, 500);
+                } else {
+                  // Full page redirect - redirect to home and refresh
+                  router.push("/?auth=success");
+                  // Force a page refresh to update all components
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 100);
                 }
-
-                setTimeout(() => {
-                  window.close();
-                }, 500);
                 return;
               }
             }
           }
 
+          // Failed to fetch user data
           if (window.opener) {
             window.opener.postMessage(
               {
@@ -88,8 +94,10 @@ export default function AuthCallbackClient() {
               },
               window.location.origin
             );
+            window.close();
+          } else {
+            router.push("/?auth=error&message=" + encodeURIComponent("Failed to fetch user data"));
           }
-          window.close();
         } catch (err) {
           console.error("Error handling auth callback:", err);
           if (window.opener) {
@@ -100,16 +108,23 @@ export default function AuthCallbackClient() {
               },
               window.location.origin
             );
+            window.close();
+          } else {
+            router.push("/?auth=error&message=" + encodeURIComponent(err.message || "Unknown error"));
           }
-          window.close();
         }
       } else {
-        window.close();
+        // No token or success
+        if (window.opener) {
+          window.close();
+        } else {
+          router.push("/");
+        }
       }
     };
 
     handleAuth();
-  }, [searchParams]);
+  }, [searchParams, router, login]);
 
   return (
     <div
