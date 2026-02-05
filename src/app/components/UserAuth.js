@@ -19,29 +19,9 @@ export default function UserAuth({ onAuthChange }) {
     // Get Google OAuth URL from backend
     const googleAuthUrl = `${API_BASE}/api/auth/google`;
     localStorage.setItem("authReturnTo", window.location.href);
-    
-    // Open Google OAuth in popup
-    const popup = window.open(
-      googleAuthUrl,
-      "Google Login",
-      "width=500,height=600,scrollbars=yes,resizable=yes"
-    );
 
-    if (!popup) {
-      alert("Please allow popups for this site to login");
-      return;
-    }
-
-    // Listen for popup to close (user completed auth)
-    const checkClosed = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkClosed);
-        // Re-check auth status after popup closes
-        setTimeout(() => {
-          checkAuth();
-        }, 1000);
-      }
-    }, 500);
+    // Use full-page redirect to avoid popup/COOP issues
+    window.location.href = googleAuthUrl;
   };
 
   const handleLogout = () => {
