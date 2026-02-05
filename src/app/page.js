@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, Fragment } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import VideoCard from "./components/VideoCard";
@@ -232,24 +232,50 @@ async function VideoGrid({ searchParams }) {
         ))}
       </div>
 
-      {/* Content Banner Ad */}
+      {/* Content Banner Ad 1 - Before videos */}
       {shouldShowAd('HOME_CONTENT_BANNER_1') && (
-        <AdProviderBanner
-          zoneId={
-            process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_ZONE_ID ||
-            "5846062"
-          }
-          adClassName={
-            process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_CLASS ||
-            "eas6a97888e2"
-          }
-        />
+        <div className={styles.contentAdContainer}>
+          <AdProviderBanner
+            zoneId={
+              process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_ZONE_ID ||
+              "5846062"
+            }
+            adClassName={
+              process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_CLASS ||
+              "eas6a97888e2"
+            }
+          />
+        </div>
       )}
 
       <div className={styles.grid}>
-        {videos.map((video) => (
-          <VideoCard key={video.id} video={video} />
-        ))}
+        {videos.map((video, index) => {
+          // Insert Content Banner Ad 2 in the middle of the videos (after ~50% of videos)
+          const midPoint = Math.floor(videos.length / 2);
+          const shouldInsertAd = shouldShowAd('HOME_CONTENT_BANNER_2') && 
+                                 index === midPoint &&
+                                 videos.length > 6; // Only insert if there are enough videos
+          
+          return (
+            <Fragment key={`video-${video.id}`}>
+              <VideoCard video={video} />
+              {shouldInsertAd && (
+                <div key="ad-banner-2" className={styles.gridAdItem}>
+                  <AdProviderBanner
+                    zoneId={
+                      process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_2_ZONE_ID ||
+                      "5846064"
+                    }
+                    adClassName={
+                      process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_2_CLASS ||
+                      "eas6a97888e2"
+                    }
+                  />
+                </div>
+              )}
+            </Fragment>
+          );
+        })}
       </div>
       {pagination?.totalPages > 1 && (
         <div className={styles.pagination}>

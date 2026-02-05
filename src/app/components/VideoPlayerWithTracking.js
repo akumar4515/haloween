@@ -167,25 +167,45 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
     // If eporner refuses connection, show a message with link to watch on eporner
     const isEporner = embedUrl.includes('eporner.com');
     
-    // Set up timeout to detect connection failures (especially for eporner)
-    // Use longer timeout on mobile devices (20 seconds) vs desktop (15 seconds)
+    // Use a very lenient approach - only show error if iframe definitively fails
+    // Don't use aggressive timeouts that might trigger false positives
     useEffect(() => {
       if (embedUrl && isEporner) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const timeoutDuration = isMobile ? 20000 : 15000; // 20s mobile, 15s desktop
-        
-        const timeout = setTimeout(() => {
-          // Only show error if still loading after extended timeout
-          // This gives mobile devices more time to load the iframe
-          if (isLoading) {
-            setHasError(true);
-            setErrorMessage("Eporner embed may be blocked. Please watch on eporner.com directly.");
-            setIsLoading(false);
+        // First, set a shorter timeout to hide loading if iframe has dimensions
+        // This handles cases where onLoad doesn't fire (cross-origin issues)
+        const hideLoadingTimeout = setTimeout(() => {
+          const iframe = document.querySelector('iframe[src*="eporner.com"]');
+          if (iframe && isLoading) {
+            // If iframe has dimensions, assume it loaded even if onLoad didn't fire
+            if (iframe.offsetHeight > 0 || iframe.offsetWidth > 0) {
+              setIsLoading(false);
+            }
           }
-        }, timeoutDuration);
-        setIframeLoadTimeout(timeout);
+        }, 10000); // 10 seconds - if iframe has dimensions, assume it's working
+        
+        // Set a very long timeout (60 seconds) as a last resort for actual failures
+        const errorTimeout = setTimeout(() => {
+          const iframe = document.querySelector('iframe[src*="eporner.com"]');
+          if (iframe && isLoading) {
+            // Check if iframe has any dimensions - if it does, it's likely loading
+            const hasDimensions = iframe.offsetHeight > 0 || iframe.offsetWidth > 0;
+            
+            if (!hasDimensions) {
+              // Iframe has no dimensions after 60 seconds, it likely failed
+              setHasError(true);
+              setErrorMessage("Eporner embed may be blocked. Please watch on eporner.com directly.");
+              setIsLoading(false);
+            } else {
+              // Iframe has dimensions, assume it's working even if onLoad didn't fire
+              setIsLoading(false);
+            }
+          }
+        }, 60000); // 60 seconds - very lenient, only for truly failed loads
+        
+        setIframeLoadTimeout(errorTimeout);
         return () => {
-          if (timeout) clearTimeout(timeout);
+          clearTimeout(hideLoadingTimeout);
+          clearTimeout(errorTimeout);
         };
       }
     }, [embedUrl, isEporner, isLoading]);
@@ -201,6 +221,7 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
           onLoad={() => {
+            // Iframe loaded successfully - clear loading state immediately
             if (iframeLoadTimeout) {
               clearTimeout(iframeLoadTimeout);
               setIframeLoadTimeout(null);
@@ -209,16 +230,18 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
             setHasError(false);
           }}
           onError={() => {
-            // Don't immediately show error - iframe errors can be false positives
-            // The timeout handler will catch actual failures
-            // This prevents premature error messages on slow mobile connections
-            console.warn("Iframe error event fired, but waiting for timeout to confirm failure");
+            // onError for iframes is unreliable, especially for cross-origin
+            // Don't act on it - let the timeout handle actual failures
+            // Many iframes will trigger onError even when they load successfully
           }}
         />
-        {isLoading && (
+        {isLoading && !hasError && (
           <div className={styles.loadingOverlay}>
             <div className={styles.loadingSpinner}></div>
             <p>Loading video...</p>
+            <p style={{ fontSize: '0.85rem', color: '#b2adb9', marginTop: '8px' }}>
+              This may take a few moments
+            </p>
           </div>
         )}
         {hasError && (
@@ -292,10 +315,13 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
             setIsLoading(false);
           }}
         />
-        {isLoading && (
+        {isLoading && !hasError && (
           <div className={styles.loadingOverlay}>
             <div className={styles.loadingSpinner}></div>
             <p>Loading video...</p>
+            <p style={{ fontSize: '0.85rem', color: '#b2adb9', marginTop: '8px' }}>
+              Please wait, this may take a moment
+            </p>
           </div>
         )}
         {hasError && (

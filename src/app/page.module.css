@@ -509,6 +509,23 @@
   gap: 16px;
 }
 
+.contentAdContainer {
+  margin: 24px 0;
+  text-align: center;
+  width: 100%;
+  /* No min-height - container will collapse if ad doesn't load */
+}
+
+.gridAdItem {
+  grid-column: 1 / -1; /* Span full width of grid */
+  margin: 16px 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* No min-height - let ad determine its own height, no space reserved if ad doesn't load */
+}
+
 .card {
   display: flex;
   flex-direction: column;

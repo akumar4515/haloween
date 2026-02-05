@@ -321,6 +321,22 @@ export default async function WatchPage({ params }) {
           ) : null}
         </section>
 
+        {/* Top Banner Ad - Shown after video player and info */}
+        {shouldShowAd('WATCH_TOP_BANNER') && (
+          <div className={styles.topBannerAdContainer}>
+            <AdProviderBanner
+              zoneId={
+                process.env.NEXT_PUBLIC_ADPROVIDER_TOP_BANNER_ZONE_ID ||
+                "5846058"
+              }
+              adClassName={
+                process.env.NEXT_PUBLIC_ADPROVIDER_TOP_BANNER_CLASS ||
+                "eas6a97888e2"
+              }
+            />
+          </div>
+        )}
+
         {/* Content Banner Ad */}
         {shouldShowAd('HOME_CONTENT_BANNER_2') && (
           <AdProviderBanner

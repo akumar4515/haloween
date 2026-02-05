@@ -30,6 +30,7 @@ export const AD_PLACEMENTS = {
   WATCH_PREROLL_AD: true,
   WATCH_OVERLAY_AD: true,
   WATCH_SIDEBAR_BANNER: true,
+  WATCH_TOP_BANNER: true,
 
   // Global ads
   HEADER_BANNER: false, // Enable if you want header banner

@@ -129,6 +129,13 @@
   color: #a0a0a0;
 }
 
+.topBannerAdContainer {
+  margin: 24px 0;
+  padding: 16px 0;
+  text-align: center;
+  width: 100%;
+}
+
 .recommendationsSection {
   margin-top: 48px;
   padding-top: 32px;
@@ -177,6 +184,11 @@
     padding: 12px 16px 24px;
   }
 
+  .topBannerAdContainer {
+    margin: 20px 0;
+    padding: 12px 0;
+  }
+
   .title {
     font-size: 1.2rem;
   }
@@ -203,6 +215,11 @@
 @media (max-width: 640px) {
   .main {
     padding: 12px 12px 24px;
+  }
+
+  .topBannerAdContainer {
+    margin: 16px 0;
+    padding: 10px 0;
   }
 
   .title {
