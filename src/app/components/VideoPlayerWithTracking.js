@@ -168,16 +168,21 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
     const isEporner = embedUrl.includes('eporner.com');
     
     // Set up timeout to detect connection failures (especially for eporner)
+    // Use longer timeout on mobile devices (20 seconds) vs desktop (15 seconds)
     useEffect(() => {
       if (embedUrl && isEporner) {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const timeoutDuration = isMobile ? 20000 : 15000; // 20s mobile, 15s desktop
+        
         const timeout = setTimeout(() => {
-          // If still loading after 5 seconds, likely connection refused
+          // Only show error if still loading after extended timeout
+          // This gives mobile devices more time to load the iframe
           if (isLoading) {
             setHasError(true);
-            setErrorMessage("Eporner embed blocked. Please watch on eporner.com directly.");
+            setErrorMessage("Eporner embed may be blocked. Please watch on eporner.com directly.");
             setIsLoading(false);
           }
-        }, 5000);
+        }, timeoutDuration);
         setIframeLoadTimeout(timeout);
         return () => {
           if (timeout) clearTimeout(timeout);
@@ -204,17 +209,10 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
             setHasError(false);
           }}
           onError={() => {
-            if (iframeLoadTimeout) {
-              clearTimeout(iframeLoadTimeout);
-              setIframeLoadTimeout(null);
-            }
-            setHasError(true);
-            if (isEporner) {
-              setErrorMessage("Eporner embed blocked. Video may need to be viewed on eporner.com directly.");
-            } else {
-              setErrorMessage("Failed to load embedded video");
-            }
-            setIsLoading(false);
+            // Don't immediately show error - iframe errors can be false positives
+            // The timeout handler will catch actual failures
+            // This prevents premature error messages on slow mobile connections
+            console.warn("Iframe error event fired, but waiting for timeout to confirm failure");
           }}
         />
         {isLoading && (
