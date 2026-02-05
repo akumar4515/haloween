@@ -2,7 +2,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "./components/ConditionalLayout";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
-import LanguageSelector from "./components/LanguageSelector";
 import PopunderScript from "./components/PopunderScript";
 
 const geistSans = Geist({
@@ -161,9 +160,6 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ConditionalLayout>{children}</ConditionalLayout>
-
-        {/* Language Selector */}
-        <LanguageSelector />
 
         {/* Service Worker Registration */}
         <script

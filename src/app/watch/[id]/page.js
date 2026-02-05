@@ -259,15 +259,10 @@ export async function generateMetadata({ params }) {
         ],
       },
       twitter: {
-        card: "player",
+        card: "summary_large_image",
         title: title,
-        description: description,
-        images: [thumbnail],
-        players: {
-          playerUrl: videoUrl,
-          width: 1280,
-          height: 720,
-        },
+        description: description.length > 200 ? description.substring(0, 197) + "..." : description,
+        images: thumbnail ? [thumbnail] : ["/logo.png"],
       },
       other: {
         "video:duration": duration ? String(duration) : undefined,

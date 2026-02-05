@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import styles from "../page.module.css";
 
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -36,39 +37,26 @@ export default function LanguageSelector() {
     window.location.href = newUrl;
   };
 
+  const currentLang = (() => {
+    const pathParts = pathname.split('/').filter(Boolean);
+    return pathParts.length > 0 && SUPPORTED_LANGUAGES.some(l => l.code === pathParts[0])
+      ? pathParts[0]
+      : 'en';
+  })();
+
   return (
-    <div style={{
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      zIndex: 1000,
-      backgroundColor: 'rgba(5, 5, 7, 0.9)',
-      border: '1px solid #332b3c',
-      borderRadius: '8px',
-      padding: '8px',
-      backdropFilter: 'blur(10px)'
-    }}>
+    <div className={styles.languageSelector}>
+      <label className={styles.languageLabel} htmlFor="language-select">
+        Language
+      </label>
       <select
-        style={{
-          backgroundColor: 'transparent',
-          color: '#f5f5f7',
-          border: 'none',
-          outline: 'none',
-          fontSize: '14px',
-          cursor: 'pointer'
-        }}
+        id="language-select"
+        className={styles.languageSelect}
         onChange={handleLanguageChange}
-        defaultValue={
-          (() => {
-            const pathParts = pathname.split('/').filter(Boolean);
-            return pathParts.length > 0 && SUPPORTED_LANGUAGES.some(l => l.code === pathParts[0])
-              ? pathParts[0]
-              : 'en';
-          })()
-        }
+        value={currentLang}
       >
         {SUPPORTED_LANGUAGES.map(lang => (
-          <option key={lang.code} value={lang.code} style={{ backgroundColor: '#050507' }}>
+          <option key={lang.code} value={lang.code}>
             {lang.flag} {lang.name}
           </option>
         ))}

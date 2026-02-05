@@ -68,6 +68,12 @@ export default async function sitemap() {
       priority: 0.3,
     },
     {
+      url: `${siteUrl}/terms-and-conditions`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
       url: `${siteUrl}/disclaimer`,
       lastModified: now,
       changeFrequency: "yearly",

@@ -8,6 +8,8 @@ import AgeVerification from "./components/AgeVerification";
 import { MobileBanner, ContentBanner } from "./components/BannerAd";
 import AdProviderBanner from "./components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
+import Footer from "./components/Footer";
+import LanguageSelector from "./components/LanguageSelector";
 
 export default function LayoutShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -131,16 +133,26 @@ export default function LayoutShell({ children }) {
                 </Link>
               </li>
               <li>
+                <Link href="/terms-and-conditions" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
+                  Terms and Conditions
+                </Link>
+              </li>
+              <li>
                 <Link href="/disclaimer" className={styles.navLink} onClick={() => setSidebarOpen(false)}>
                   Disclaimer
                 </Link>
               </li>
             </ul>
           </nav>
+
+          <div className={styles.languageSelectorSection}>
+            <LanguageSelector />
+          </div>
         </aside>
 
         <section className={styles.content}>{children}</section>
       </main>
+      <Footer />
     </div>
   );
 }

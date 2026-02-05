@@ -30,36 +30,49 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>3. Automatically Collected Information</h2>
+          <h2 className={styles.sectionTitle}>3. Third-Party Services and Advertising</h2>
           <p className={styles.paragraph}>
-            Like most websites, our servers may automatically log certain technical information that your browser sends when you visit our site. This may include:
+            Our platform uses third-party advertising services that may use cookies, web beacons, and similar technologies to deliver advertisements and measure their effectiveness. These third-party services may collect certain technical information automatically, such as:
           </p>
           <ul className={styles.list}>
-            <li>IP address (which may be logged temporarily for security purposes but is not stored)</li>
+            <li>IP address (anonymized for privacy)</li>
             <li>Browser type and version</li>
-            <li>Operating system</li>
-            <li>Pages visited and time spent</li>
-            <li>Referring website addresses</li>
+            <li>Device information</li>
+            <li>Pages visited</li>
           </ul>
           <p className={styles.paragraph}>
-            <strong>This information is used solely for technical purposes (such as preventing abuse and ensuring site functionality) and is not stored, analyzed, or used to create user profiles.</strong>
+            <strong>We do not have access to, control over, or store any of this information.</strong> Third-party advertising networks operate independently and their data collection practices are governed by their own privacy policies. We encourage you to review the privacy policies of any advertising networks you encounter on our platform.
+          </p>
+          <p className={styles.paragraph}>
+            You can opt out of personalized advertising through your browser settings or by using ad-blocking software. However, this may affect the functionality of our free service.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>4. Cookies and Tracking Technologies</h2>
+          <h2 className={styles.sectionTitle}>4. Cookies and Local Storage</h2>
           <p className={styles.paragraph}>
-            We may use cookies and similar tracking technologies to enhance your browsing experience and for basic site functionality. These cookies are used for technical purposes only and do not track your personal information or create user profiles.
+            Our platform may use cookies and local storage for essential site functionality, such as:
+          </p>
+          <ul className={styles.list}>
+            <li>Age verification preferences</li>
+            <li>Language preferences</li>
+            <li>Basic site settings</li>
+          </ul>
+          <p className={styles.paragraph}>
+            <strong>These cookies do not contain personal information and are not used to track or identify users.</strong> Third-party advertising services may also set their own cookies, which are subject to their respective privacy policies.
           </p>
           <p className={styles.paragraph}>
-            You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our service.
+            You can manage or delete cookies through your browser settings. However, disabling cookies may affect some site functionality.
           </p>
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>5. Third-Party Services</h2>
+          <h2 className={styles.sectionTitle}>5. Content Delivery and Analytics</h2>
           <p className={styles.paragraph}>
-            Our platform may use third-party services (such as content delivery networks, analytics services, or advertising networks) that may collect information automatically. We do not control these third-party services, and their privacy practices are governed by their own privacy policies. We encourage you to review the privacy policies of any third-party services you encounter.
+            We use third-party content delivery networks (CDNs) to ensure fast and reliable video streaming. These services may log basic technical information (such as IP addresses) for operational purposes, but this data is not shared with us or used to identify individual users.
+          </p>
+          <p className={styles.paragraph}>
+            We do not use analytics services that track individual user behavior or create user profiles. Any analytics data collected by third-party services is anonymous and aggregated.
           </p>
         </section>
 
