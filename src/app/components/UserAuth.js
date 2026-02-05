@@ -108,6 +108,35 @@ export default function UserAuth({ onAuthChange }) {
     return () => window.removeEventListener("message", handleMessage);
   }, [onAuthChange, login]);
 
+  // Fallback for popup flow when window.opener is unavailable
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (event.key !== "authResult" || !event.newValue) return;
+      try {
+        const payload = JSON.parse(event.newValue);
+        if (payload?.status === "success") {
+          checkAuth();
+          const fallback = localStorage.getItem("authReturnTo");
+          const target = payload.returnTo || fallback;
+          if (target) {
+            localStorage.removeItem("authReturnTo");
+            window.location.href = target;
+          }
+        } else if (payload?.status === "error") {
+          localStorage.removeItem("authReturnTo");
+          alert(`Authentication failed: ${payload.error || "Unknown error"}`);
+        }
+      } catch (err) {
+        console.error("Failed to process authResult:", err);
+      } finally {
+        localStorage.removeItem("authResult");
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [checkAuth]);
+
 
   if (loading) {
     return (

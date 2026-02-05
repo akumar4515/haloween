@@ -14,6 +14,16 @@ export default function AuthCallbackClient() {
     const error = searchParams.get("error");
 
     const sendError = (message) => {
+      localStorage.setItem(
+        "authResult",
+        JSON.stringify({
+          status: "error",
+          error: message,
+          returnTo: localStorage.getItem("authReturnTo"),
+          timestamp: Date.now(),
+        })
+      );
+
       if (window.opener && !window.opener.closed) {
         window.opener.postMessage(
           { type: "GOOGLE_AUTH_ERROR", error: message },
@@ -72,6 +82,14 @@ export default function AuthCallbackClient() {
         );
 
         const returnTo = localStorage.getItem("authReturnTo");
+        localStorage.setItem(
+          "authResult",
+          JSON.stringify({
+            status: "success",
+            returnTo,
+            timestamp: Date.now(),
+          })
+        );
         localStorage.removeItem("authReturnTo");
 
         if (window.opener && !window.opener.closed) {
