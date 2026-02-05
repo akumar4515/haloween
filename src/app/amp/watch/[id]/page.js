@@ -1,8 +1,8 @@
 async function fetchVideo(id) {
   const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-  const url = new URL(`${baseUrl}/eporner/videos/${id}`, "http://localhost");
+  const url = new URL(`${baseUrl}/api/eporner/videos/${id}`, "http://localhost");
   url.searchParams.set("thumbsize", "big");
 
   const res = await fetch(url.toString(), { cache: "no-store" });
@@ -36,9 +36,9 @@ async function fetchRecommendedVideos(currentVideo, page = 1) {
   }
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-  const searchUrl = new URL(`${baseUrl}/eporner/videos/search`, "http://localhost");
+  const searchUrl = new URL(`${baseUrl}/api/eporner/videos/search`, "http://localhost");
 
   // Use keywords first, then category/tags
   let recQuery = "";

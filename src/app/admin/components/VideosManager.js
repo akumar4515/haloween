@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "../admin.module.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function VideosManager() {
   const [videos, setVideos] = useState([]);
@@ -37,7 +37,7 @@ export default function VideosManager() {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/videos?limit=1000`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE}/api/videos?limit=1000`, { cache: "no-store" });
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -62,7 +62,7 @@ export default function VideosManager() {
 
   const fetchActors = async () => {
     try {
-      const res = await fetch(`${API_BASE}/actors`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE}/api/actors`, { cache: "no-store" });
       if (res.ok) {
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
@@ -73,7 +73,7 @@ export default function VideosManager() {
       }
       
       // Fallback: try channels if actors endpoint doesn't exist
-      const channelsRes = await fetch(`${API_BASE}/channels`, { cache: "no-store" });
+      const channelsRes = await fetch(`${API_BASE}/api/channels`, { cache: "no-store" });
       if (channelsRes.ok) {
         const contentType = channelsRes.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
@@ -88,7 +88,7 @@ export default function VideosManager() {
 
   const fetchChannels = async () => {
     try {
-      const res = await fetch(`${API_BASE}/channels`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE}/api/channels`, { cache: "no-store" });
       if (res.ok) {
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
@@ -130,8 +130,8 @@ export default function VideosManager() {
       };
 
       const url = editingVideo
-        ? `${API_BASE}/videos/${editingVideo.id}`
-        : `${API_BASE}/videos`;
+        ? `${API_BASE}/api/videos/${editingVideo.id}`
+        : `${API_BASE}/api/videos`;
       const method = editingVideo ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -180,7 +180,7 @@ export default function VideosManager() {
     if (!confirm("Are you sure you want to delete this video?")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/videos/${id}`, {
+      const res = await fetch(`${API_BASE}/api/videos/${id}`, {
         method: "DELETE",
       });
 
@@ -199,13 +199,13 @@ export default function VideosManager() {
   const updateVideoActors = async (videoId, actorIds) => {
     try {
       // First, delete existing actor relationships
-      await fetch(`${API_BASE}/videos/${videoId}/actors`, {
+      await fetch(`${API_BASE}/api/videos/${videoId}/actors`, {
         method: "DELETE",
       });
 
       // Then, add new actor relationships
       if (actorIds.length > 0) {
-        await fetch(`${API_BASE}/videos/${videoId}/actors`, {
+        await fetch(`${API_BASE}/api/videos/${videoId}/actors`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ actor_ids: actorIds.map(id => parseInt(id)) }),

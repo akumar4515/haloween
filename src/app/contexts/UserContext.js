@@ -25,7 +25,7 @@ export function UserProvider({ children }) {
         if (storedToken) {
           // Verify token with backend
           try {
-            const res = await fetch(`${API_BASE}/auth/me`, {
+            const res = await fetch(`${API_BASE}/api/auth/me`, {
               headers: {
                 Authorization: `Bearer ${storedToken}`,
               },

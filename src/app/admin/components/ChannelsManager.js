@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "../admin.module.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function ChannelsManager() {
   const [channels, setChannels] = useState([]);
@@ -24,7 +24,7 @@ export default function ChannelsManager() {
   const fetchChannels = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/channels`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE}/api/channels`, { cache: "no-store" });
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -51,8 +51,8 @@ export default function ChannelsManager() {
     e.preventDefault();
     try {
       const url = editingChannel
-        ? `${API_BASE}/channels/${editingChannel.id}`
-        : `${API_BASE}/channels`;
+        ? `${API_BASE}/api/channels/${editingChannel.id}`
+        : `${API_BASE}/api/channels`;
       const method = editingChannel ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -86,7 +86,7 @@ export default function ChannelsManager() {
     if (!confirm("Are you sure you want to delete this channel?")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/channels/${id}`, {
+      const res = await fetch(`${API_BASE}/api/channels/${id}`, {
         method: "DELETE",
       });
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "../admin.module.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function ActorsManager() {
   const [actors, setActors] = useState([]);
@@ -24,7 +24,7 @@ export default function ActorsManager() {
   const fetchActors = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/actors`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE}/api/actors`, { cache: "no-store" });
       
       if (res.ok) {
         const contentType = res.headers.get("content-type");
@@ -36,7 +36,7 @@ export default function ActorsManager() {
       }
       
       // Fallback: try channels if actors endpoint doesn't exist
-      const channelsRes = await fetch(`${API_BASE}/channels`, { cache: "no-store" });
+      const channelsRes = await fetch(`${API_BASE}/api/channels`, { cache: "no-store" });
       if (channelsRes.ok) {
         const contentType = channelsRes.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
@@ -56,8 +56,8 @@ export default function ActorsManager() {
     e.preventDefault();
     try {
       const url = editingActor
-        ? `${API_BASE}/actors/${editingActor.id}`
-        : `${API_BASE}/actors`;
+        ? `${API_BASE}/api/actors/${editingActor.id}`
+        : `${API_BASE}/api/actors`;
       const method = editingActor ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -91,7 +91,7 @@ export default function ActorsManager() {
     if (!confirm("Are you sure you want to delete this actor?")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/actors/${id}`, {
+      const res = await fetch(`${API_BASE}/api/actors/${id}`, {
         method: "DELETE",
       });
 

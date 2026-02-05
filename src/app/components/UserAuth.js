@@ -17,7 +17,7 @@ export default function UserAuth({ onAuthChange }) {
 
   const handleGoogleLogin = () => {
     // Get Google OAuth URL from backend
-    const googleAuthUrl = `${API_BASE}/auth/google`;
+    const googleAuthUrl = `${API_BASE}/api/auth/google`;
     
     // Open Google OAuth in popup
     const popup = window.open(
@@ -46,7 +46,7 @@ export default function UserAuth({ onAuthChange }) {
   const handleAuthCallback = async (token) => {
     try {
       // Fetch user data from backend
-      const res = await fetch(`${API_BASE}/auth/me`, {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

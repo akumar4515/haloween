@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "../admin.module.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function CategoriesManager() {
   const [categories, setCategories] = useState([]);
@@ -21,7 +21,7 @@ export default function CategoriesManager() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/categories`, { cache: "no-store" });
+      const res = await fetch(`${API_BASE}/api/categories`, { cache: "no-store" });
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -48,8 +48,8 @@ export default function CategoriesManager() {
     e.preventDefault();
     try {
       const url = editingCategory
-        ? `${API_BASE}/categories/${editingCategory}`
-        : `${API_BASE}/categories`;
+        ? `${API_BASE}/api/categories/${editingCategory}`
+        : `${API_BASE}/api/categories`;
       const method = editingCategory ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -83,7 +83,7 @@ export default function CategoriesManager() {
     if (!confirm(`Are you sure you want to delete category "${category}"?`)) return;
 
     try {
-      const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(category)}`, {
+      const res = await fetch(`${API_BASE}/api/categories/${encodeURIComponent(category)}`, {
         method: "DELETE",
       });
 

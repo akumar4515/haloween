@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 
 // Helper function to fetch videos for sitemap
 async function fetchVideosForSitemap(limit = 1000) {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   try {
     // Fetch videos from the API (limit to recent/popular ones for sitemap)
-    const searchUrl = new URL(`${baseUrl}/eporner/videos`, "http://localhost");
+    const searchUrl = new URL(`${baseUrl}/api/eporner/videos`, "http://localhost");
     searchUrl.searchParams.set("page", "1");
     searchUrl.searchParams.set("per_page", String(limit));
     searchUrl.searchParams.set("thumbsize", "big");

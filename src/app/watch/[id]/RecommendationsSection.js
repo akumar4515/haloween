@@ -26,7 +26,7 @@ export default function RecommendationsSection({
       const baseUrl =
         process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
       const nextPage = page + 1;
-      const url = new URL(`${baseUrl}/eporner/videos/search`, "http://localhost");
+      const url = new URL(`${baseUrl}/api/eporner/videos/search`, "http://localhost");
       if (query) {
         url.searchParams.set("query", query);
       }
