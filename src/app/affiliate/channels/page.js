@@ -1,6 +1,8 @@
 import Link from "next/link";
 import styles from "../../page.module.css";
 
+export const dynamic = "force-dynamic";
+
 const getApiRoot = () => {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
   const normalized = raw.replace(/\/+$/, "");

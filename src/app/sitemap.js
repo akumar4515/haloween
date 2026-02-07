@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 // Helper function to fetch videos from eporner API for sitemap
 async function fetchVideosForSitemap(limit = 500) {
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
