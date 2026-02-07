@@ -85,6 +85,36 @@
   color: #ee8db2;
 }
 
+.tagCategory {
+  color: #ff5f9c;
+  border-color: #332b3c;
+}
+
+.tagCategory:hover {
+  border-color: #ff5f9c;
+  color: #ee8db2;
+}
+
+.tagPornstar {
+  color: #ffb86c;
+  border-color: #4a3a2a;
+}
+
+.tagPornstar:hover {
+  border-color: #ffb86c;
+  color: #ffd6a1;
+}
+
+.tagChannel {
+  color: #7fd1ff;
+  border-color: #2b3b4a;
+}
+
+.tagChannel:hover {
+  border-color: #7fd1ff;
+  color: #b8e7ff;
+}
+
 .actorsSection {
   margin-top: 12px;
   display: flex;

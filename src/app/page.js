@@ -2,6 +2,7 @@ import { Suspense, Fragment } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import VideoCard from "./components/VideoCard";
+import AffiliateVideoCard from "./components/AffiliateVideoCard";
 import { ContentBanner } from "./components/BannerAd";
 import AdProviderBanner from "./components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
@@ -51,6 +52,65 @@ const normalizeQuery = (value) => {
 };
 
 
+
+async function fetchAffiliateVideos(searchParams = {}) {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+  const page = Number(searchParams?.page) || 1;
+  const perPage = Number(searchParams?.per_page) || 50;
+  let { q } = searchParams;
+  q = normalizeQuery(q);
+  const hasSearchQuery = q && q !== "newest" && q !== "free" && q !== "premium";
+
+  try {
+    // Construct URL properly
+    const normalizedBaseUrl = baseUrl.replace(/\/+$/, ''); // Remove trailing slashes
+    const apiUrl = hasSearchQuery
+      ? `${normalizedBaseUrl}/api/affiliate/search`
+      : `${normalizedBaseUrl}/api/affiliate/videos`;
+    const url = new URL(apiUrl);
+    url.searchParams.set("page", String(page));
+    url.searchParams.set("per_page", String(perPage));
+    if (hasSearchQuery) {
+      url.searchParams.set("query", String(q));
+    }
+
+    const res = await fetch(url.toString(), { 
+      cache: "no-store",
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'Unable to read error');
+      console.error(`API Error (${res.status}):`, errorText);
+      console.error(`Failed URL: ${url.toString()}`);
+      
+      // If it's a 404, the backend might not be running or route not found
+      if (res.status === 404) {
+        console.warn('Backend server may not be running. Please start the backend server on port 5000.');
+      }
+      
+      return { videos: [], pagination: { page, perPage, totalPages: 1, totalCount: null } };
+    }
+    
+    const data = await res.json();
+    
+    if (data && data.success && data.data) {
+      return {
+        videos: Array.isArray(data.data) ? data.data : [],
+        pagination: data.pagination || { page, perPage, totalPages: 1, totalCount: null }
+      };
+    }
+    
+    return { videos: [], pagination: { page, perPage, totalPages: 1, totalCount: null } };
+  } catch (error) {
+    console.error("Error fetching affiliate videos:", error);
+    return { videos: [], pagination: { page, perPage, totalPages: 1, totalCount: null } };
+  }
+}
 
 async function fetchVideos(searchParams = {}) {
   const baseUrl =
@@ -175,63 +235,71 @@ async function fetchVideos(searchParams = {}) {
 }
 
 
-async function VideoGrid({ searchParams }) {
-  const { videos, pagination } = await fetchVideos(searchParams);
-  const selectedQ = normalizeQuery(searchParams?.q) || "newest";
-  const currentPage = Number(searchParams?.page) || 1;
+const shuffleArray = (items) => {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
 
-  const buildTagHref = (value) => {
-    const sp = new URLSearchParams();
-    if (value) sp.set("q", value);
-    return `/?${sp.toString()}`;
+async function VideoGrid({ searchParams }) {
+  const currentPage = Number(searchParams?.page) || 1;
+  const perPage = Number(searchParams?.per_page) || 50;
+  const q = normalizeQuery(searchParams?.q);
+  const hasSearchQuery = q && q !== "newest" && q !== "free" && q !== "premium";
+  const affiliatePerPage = Math.max(1, Math.ceil(perPage / 2));
+  const epornerPerPage = Math.max(1, perPage - affiliatePerPage);
+  const affiliateParams = { ...searchParams, per_page: affiliatePerPage };
+  const epornerParams = { ...searchParams, per_page: epornerPerPage };
+
+  const [affiliateResponse, epornerResponse] = await Promise.all([
+    fetchAffiliateVideos(affiliateParams),
+    fetchVideos(epornerParams),
+  ]);
+
+  const affiliateVideos = (affiliateResponse?.videos || []).map((video) => ({
+    ...video,
+    __source: "affiliate",
+  }));
+  const epornerVideos = (epornerResponse?.videos || []).map((video) => ({
+    ...video,
+    __source: "eporner",
+  }));
+
+  const videos = shuffleArray([...affiliateVideos, ...epornerVideos]);
+  const pagination = {
+    page: currentPage,
+    perPage,
+    totalPages: Math.max(
+      affiliateResponse?.pagination?.totalPages || 1,
+      epornerResponse?.pagination?.totalPages || 1
+    ),
+    totalCount:
+      (affiliateResponse?.pagination?.totalCount || 0) +
+      (epornerResponse?.pagination?.totalCount || 0),
   };
 
   const buildPageHref = (nextPage) => {
     const sp = new URLSearchParams();
-    if (selectedQ) sp.set("q", selectedQ);
     sp.set("page", String(nextPage));
+    if (hasSearchQuery) {
+      sp.set("q", String(q));
+    }
     return `/?${sp.toString()}`;
   };
 
   if (!videos.length) {
     return (
-      <>
-        <div className={styles.tagBar}>
-          {["newest", "free", "premium"].map((tag) => (
-            <Link
-              key={tag}
-              href={buildTagHref(tag)}
-              className={`${styles.tagChip} ${
-                selectedQ === tag ? styles.tagChipActive : ""
-              }`}
-            >
-              {tag.charAt(0).toUpperCase() + tag.slice(1)}
-            </Link>
-          ))}
-        </div>
-        <div className={styles.emptyState}>
-          <p>No videos found. Try adjusting your search.</p>
-        </div>
-      </>
+      <div className={styles.emptyState}>
+        <p>{hasSearchQuery ? "No videos found for your search." : "No videos found."}</p>
+      </div>
     );
   }
 
   return (
     <>
-      <div className={styles.tagBar}>
-        {["newest", "free", "premium"].map((tag) => (
-          <Link
-            key={tag}
-            href={buildTagHref(tag)}
-            className={`${styles.tagChip} ${
-              selectedQ === tag ? styles.tagChipActive : ""
-            }`}
-          >
-            {tag.charAt(0).toUpperCase() + tag.slice(1)}
-          </Link>
-        ))}
-      </div>
-
       {/* Content Banner Ad 1 - Before videos */}
       {shouldShowAd('HOME_CONTENT_BANNER_1') && (
         <div className={styles.contentAdContainer}>
@@ -258,7 +326,11 @@ async function VideoGrid({ searchParams }) {
           
           return (
             <Fragment key={`video-${video.id}`}>
-              <VideoCard video={video} />
+              {video.__source === "eporner" ? (
+                <VideoCard video={video} />
+              ) : (
+                <AffiliateVideoCard video={video} />
+              )}
               {shouldInsertAd && (
                 <div key="ad-banner-2" className={styles.gridAdItem}>
                   <AdProviderBanner

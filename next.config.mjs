@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const backendBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000").replace(/\/+$/, "");
 const nextConfig = {
   /* config options here */
   reactCompiler: true,
@@ -24,6 +25,14 @@ const nextConfig = {
         protocol: "https",
         hostname: "img.youtube.com",
       },
+      {
+        protocol: "https",
+        hostname: "ic-nss.flixcdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "thumb-ah.flixcdn.com",
+      },
     ],
   },
   async headers() {
@@ -36,6 +45,14 @@ const nextConfig = {
             value: "same-origin-allow-popups",
           },
         ],
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${backendBaseUrl}/api/:path*`,
       },
     ];
   },

@@ -1,7 +1,7 @@
 // Service Worker for caching and performance optimization
-const CACHE_NAME = 'flovex-v2';
-const STATIC_CACHE = 'flovex-static-v2';
-const DYNAMIC_CACHE = 'flovex-dynamic-v2';
+const CACHE_NAME = 'flovex-v3';
+const STATIC_CACHE = 'flovex-static-v3';
+const DYNAMIC_CACHE = 'flovex-dynamic-v3';
 
 // Resources to cache immediately
 const STATIC_ASSETS = [
@@ -72,6 +72,15 @@ self.addEventListener('fetch', event => {
   else if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request).then(response => {
+        // Don't cache 404 errors - they indicate missing endpoints
+        if (response.status === 404) {
+          // Delete from cache if it exists
+          caches.open(DYNAMIC_CACHE).then(cache => {
+            cache.delete(request);
+          });
+          return response;
+        }
+        
         // Only cache successful responses
         if (response.ok) {
           const responseClone = response.clone();
@@ -92,8 +101,8 @@ self.addEventListener('fetch', event => {
         }
         return response;
       }).catch(() => {
-        // Return cached version if available
-        return caches.match(request);
+        // Don't return cached version for API calls - always fetch fresh
+        return fetch(request);
       })
     );
   }

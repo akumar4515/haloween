@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import styles from "./watch.module.css";
-import VideoCard from "../../components/VideoCard";
+import AffiliateVideoCard from "./AffiliateVideoCard";
+import styles from "../watch/[id]/watch.module.css";
 
 const PAGE_SIZE = 20;
 
@@ -12,7 +12,7 @@ const getApiRoot = () => {
   return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
 };
 
-export default function RecommendationsSection({
+export default function AffiliateRecommendationsByQuery({
   title = "Recommended Videos",
   initialVideos,
   query,
@@ -32,14 +32,12 @@ export default function RecommendationsSection({
     try {
       const apiRoot = getApiRoot();
       const nextPage = page + 1;
-      const url = new URL(`${apiRoot}/eporner/videos/search`);
+      const url = new URL(`${apiRoot}/affiliate/search`);
       if (query) {
         url.searchParams.set("query", query);
       }
-      url.searchParams.set("order", "mostviewed");
       url.searchParams.set("page", String(nextPage));
       url.searchParams.set("per_page", String(PAGE_SIZE));
-      url.searchParams.set("thumbsize", "big");
 
       const res = await fetch(url.toString(), { cache: "no-store" });
       if (!res.ok) {
@@ -47,26 +45,9 @@ export default function RecommendationsSection({
         return;
       }
 
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        setLoading(false);
-        return;
-      }
-
       const data = await res.json();
-      let newVideos = [];
-      let nextTotalPages = totalPages || 1;
-
-      if (data?.success && data?.data) {
-        if (Array.isArray(data.data)) {
-          newVideos = data.data;
-        } else if (Array.isArray(data.data.videos)) {
-          newVideos = data.data.videos;
-          nextTotalPages = Number(data.data.total_pages) || nextTotalPages;
-        } else if (Array.isArray(data.data.data)) {
-          newVideos = data.data.data;
-        }
-      }
+      const newVideos = data?.success && Array.isArray(data.data) ? data.data : [];
+      const nextTotalPages = data?.pagination?.totalPages || totalPages || 1;
 
       if (newVideos.length > 0) {
         setVideos((prev) => [...prev, ...newVideos]);
@@ -87,7 +68,7 @@ export default function RecommendationsSection({
       <h2 className={styles.recommendationsTitle}>{title}</h2>
       <div className={styles.recommendationsGrid}>
         {videos.map((recVideo) => (
-          <VideoCard key={recVideo.id} video={recVideo} />
+          <AffiliateVideoCard key={recVideo.id} video={recVideo} />
         ))}
       </div>
       {hasMore && (

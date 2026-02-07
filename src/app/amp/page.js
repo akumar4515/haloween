@@ -23,7 +23,7 @@ const normalizeQuery = (value) => {
 
 async function fetchVideos(searchParams = {}) {
   const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 
   let { q } = searchParams;
   q = normalizeQuery(q);
@@ -33,7 +33,7 @@ async function fetchVideos(searchParams = {}) {
   try {
     const hasSearchQuery = q && q !== "newest" && q !== "free" && q !== "premium";
     const endpoint = hasSearchQuery ? "videos/search" : "videos";
-    const searchUrl = new URL(`${baseUrl}/api/eporner/${endpoint}`, "http://localhost");
+    const searchUrl = new URL(`${baseUrl}/eporner/${endpoint}`, "http://localhost");
 
     if (hasSearchQuery) {
       searchUrl.searchParams.set("query", q);

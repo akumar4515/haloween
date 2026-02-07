@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import styles from "./watch.module.css";
 import RecommendationsSection from "./RecommendationsSection";
+import AffiliateRecommendationsByQuery from "../../components/AffiliateRecommendationsByQuery";
 import VideoPlayerWithTracking from "../../components/VideoPlayerWithTracking";
 import AdProviderBanner from "../../components/AdProviderBanner";
 import { shouldShowAd } from "../../config/ads";
@@ -194,6 +195,58 @@ async function fetchRecommendedVideos(currentVideo, page = 1) {
   };
 }
 
+async function fetchAffiliateRecommendationsByQuery(currentVideo, page = 1) {
+  if (!currentVideo) {
+    return { videos: [], pagination: { page: 1, totalPages: 1 }, query: "" };
+  }
+
+  const apiRoot = getApiRoot();
+  const searchUrl = new URL(`${apiRoot}/affiliate/search`);
+  let recQuery = "";
+
+  const rawKeywords = currentVideo.keywords || currentVideo.raw?.keywords || "";
+  const keywordList = String(rawKeywords)
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+
+  if (keywordList.length > 0) {
+    recQuery = keywordList[0];
+  } else if (currentVideo.category) {
+    recQuery = currentVideo.category;
+  } else if (currentVideo.tags) {
+    const tags = String(currentVideo.tags)
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (tags.length > 0) {
+      recQuery = tags[0];
+    }
+  }
+
+  if (recQuery) {
+    searchUrl.searchParams.set("query", recQuery);
+  }
+  searchUrl.searchParams.set("page", String(page));
+  searchUrl.searchParams.set("per_page", "20");
+
+  const res = await fetch(searchUrl.toString(), { cache: "no-store" });
+  if (!res.ok) {
+    return { videos: [], pagination: { page, totalPages: 1 }, query: recQuery };
+  }
+
+  const data = await res.json();
+  if (data && data.success) {
+    return {
+      videos: Array.isArray(data.data) ? data.data : [],
+      pagination: data.pagination || { page, totalPages: 1 },
+      query: recQuery
+    };
+  }
+
+  return { videos: [], pagination: { page, totalPages: 1 }, query: recQuery };
+}
+
 // Generate SEO metadata from eporner video data
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -295,7 +348,10 @@ export default async function WatchPage({ params }) {
     );
   }
 
-  const recommended = await fetchRecommendedVideos(video);
+  const [recommended, affiliateRecommended] = await Promise.all([
+    fetchRecommendedVideos(video),
+    fetchAffiliateRecommendationsByQuery(video),
+  ]);
 
   return (
     <div className={styles.main}>
@@ -354,10 +410,20 @@ export default async function WatchPage({ params }) {
         {/* Recommended Videos */}
         {recommended?.videos?.length > 0 && (
           <RecommendationsSection
+            title="Recommended Videos"
             initialVideos={recommended.videos}
             query={recommended.query}
             initialPage={recommended.pagination?.page || 1}
             totalPages={recommended.pagination?.totalPages || 1}
+          />
+        )}
+        {affiliateRecommended?.videos?.length > 0 && (
+          <AffiliateRecommendationsByQuery
+            title="Affiliate Recommended Videos"
+            initialVideos={affiliateRecommended.videos}
+            query={affiliateRecommended.query}
+            initialPage={affiliateRecommended.pagination?.page || 1}
+            totalPages={affiliateRecommended.pagination?.totalPages || 1}
           />
         )}
     </div>

@@ -11,13 +11,14 @@ export default function PreVideoAd({
   type = "preroll", // "preroll" or "overlay"
   className = ""
 }) {
+  const skipDelaySeconds = 15;
   const adRef = useRef(null);
   const [adLoaded, setAdLoaded] = useState(false);
   const [adCompleted, setAdCompleted] = useState(false);
-  const [showSkipButton, setShowSkipButton] = useState(false);
   const [vastMediaUrl, setVastMediaUrl] = useState(null);
   const [vastError, setVastError] = useState(null);
   const skipTimeoutRef = useRef(null);
+  const [remainingSeconds, setRemainingSeconds] = useState(skipDelaySeconds);
 
   useEffect(() => {
     if (!adRef.current || adLoaded) return;
@@ -120,17 +121,29 @@ export default function PreVideoAd({
       };
     }
 
-    // Show skip button after 5 seconds
+    // Enable skip after 15 seconds
     skipTimeoutRef.current = setTimeout(() => {
-      setShowSkipButton(true);
-    }, 5000);
+      // timer only
+    }, skipDelaySeconds * 1000);
 
     return () => {
       if (skipTimeoutRef.current) {
         clearTimeout(skipTimeoutRef.current);
       }
     };
-  }, [zoneId, type, adLoaded, onAdComplete, vastUrl]);
+  }, [zoneId, type, adLoaded, onAdComplete, vastUrl, skipDelaySeconds]);
+
+  useEffect(() => {
+    if (adCompleted) return;
+    const startTime = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const remaining = Math.max(skipDelaySeconds - elapsed, 0);
+      setRemainingSeconds(remaining);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [adCompleted, skipDelaySeconds]);
 
   const handleSkip = () => {
     setAdCompleted(true);
@@ -190,28 +203,27 @@ export default function PreVideoAd({
           )}
         </div>
       )}
-      {showSkipButton && (
-        <button
-          onClick={handleSkip}
-          style={{
-            position: 'absolute',
-            top: '10px',
-            left: '10px',
-            backgroundColor: 'rgba(255, 95, 156, 0.9)',
-            color: 'white',
-            border: 'none',
-            padding: '8px 16px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            zIndex: 1001,
-            pointerEvents: 'auto'
-          }}
-        >
-          Skip Ad
-        </button>
-      )}
+      <button
+        onClick={handleSkip}
+        disabled={remainingSeconds > 0}
+        style={{
+          position: "absolute",
+          bottom: "12px",
+          right: "12px",
+          background: remainingSeconds > 0 ? "rgba(0, 0, 0, 0.7)" : "rgba(255, 95, 156, 0.9)",
+          color: "#fff",
+          border: "none",
+          padding: "6px 12px",
+          borderRadius: "6px",
+          fontSize: "12px",
+          fontWeight: "bold",
+          zIndex: 1001,
+          pointerEvents: "auto",
+          cursor: remainingSeconds > 0 ? "default" : "pointer"
+        }}
+      >
+        {remainingSeconds > 0 ? `Skip in ${remainingSeconds}s` : "Skip Ad"}
+      </button>
 
       {/* Loading overlay */}
       {!adLoaded && (

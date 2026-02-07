@@ -180,7 +180,9 @@ export default function VideoCard({ video }) {
         ) : null}
       </div>
       <div className={styles.cardBody}>
-        <h3 className={styles.cardTitle}>{videoTitle || "Untitled"}</h3>
+        <h3 className={`${styles.cardTitle} ${styles.epornerTitle}`}>
+          {videoTitle || "Untitled"}
+        </h3>
         <p className={styles.cardMeta}>
           {typeof videoViews === "number" && videoViews > 0
             ? `${formatNumber(videoViews)} views`

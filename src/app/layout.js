@@ -167,13 +167,22 @@ export default function RootLayout({ children }) {
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                      console.log('SW registered: ', registration);
-                    })
-                    .catch(function(registrationError) {
-                      console.log('SW registration failed: ', registrationError);
-                    });
+                  // Unregister old service workers first
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                      registration.unregister();
+                    }
+                    // Register new service worker
+                    navigator.serviceWorker.register('/sw.js?v=' + Date.now())
+                      .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                        // Update service worker if available
+                        registration.update();
+                      })
+                      .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                      });
+                  });
                 });
               }
             `,

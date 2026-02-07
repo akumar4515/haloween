@@ -4,18 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 import AdminLogin from "./components/AdminLogin";
-import VideosManager from "./components/VideosManager";
+import TablesManager from "./components/TablesManager";
+import FileUpload from "./components/FileUpload";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("videos");
+  const [activeTab, setActiveTab] = useState("tables");
+  const [tables, setTables] = useState([]);
   const router = useRouter();
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
 
   const checkAuth = () => {
     try {
@@ -42,9 +42,59 @@ export default function AdminPage() {
     }
   };
 
-  const handleLoginSuccess = (adminData) => {
+  const fetchTables = async () => {
+    try {
+      const authData = localStorage.getItem("adminAuth");
+      if (!authData) return;
+
+      const credentials = btoa("flovex_admin:flovex.admin@00");
+      const res = await fetch(`${API_BASE}/api/admin/tables`, {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setTables(data.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+    }
+  };
+
+  // All hooks must be called before any conditional returns
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTables();
+    }
+  }, [isAuthenticated]);
+
+  const tabs = [
+    { id: "tables", label: "Tables" },
+    { id: "upload", label: "Upload File" },
+  ];
+
+  // Debug: Log to verify correct components are loaded
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('Admin page loaded with tabs:', tabs.map(t => t.label));
+      console.log('Active tab:', activeTab);
+      console.log('Tables count:', tables.length);
+    }
+  }, [activeTab, tables, isAuthenticated]);
+
+  const handleLoginSuccess = async (adminData) => {
     setIsAuthenticated(true);
     setAdmin(adminData);
+    // Fetch tables for file upload
+    await fetchTables();
   };
 
   const handleLogout = () => {
@@ -54,6 +104,7 @@ export default function AdminPage() {
     router.push("/");
   };
 
+  // Conditional returns after all hooks
   if (loading) {
     return (
       <div className={styles.loginContainer}>
@@ -66,18 +117,14 @@ export default function AdminPage() {
     return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
   }
 
-  const tabs = [
-    { id: "videos", label: "Videos" },
-  ];
-
   return (
     <div className={styles.adminContainer}>
       <div className={styles.adminHeader}>
         <div>
           <h1 className={styles.adminTitle}>Admin Panel</h1>
           <p className={styles.adminSubtitle}>Manage your content database</p>
-          {admin?.email && (
-            <p className={styles.adminEmail}>Logged in as: {admin.email}</p>
+          {admin?.username && (
+            <p className={styles.adminEmail}>Logged in as: {admin.username}</p>
           )}
         </div>
       </div>
@@ -89,7 +136,10 @@ export default function AdminPage() {
             className={`${styles.tab} ${
               activeTab === tab.id ? styles.tabActive : ""
             }`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              console.log('Tab clicked:', tab.id);
+              setActiveTab(tab.id);
+            }}
           >
             {tab.label}
           </button>
@@ -97,7 +147,8 @@ export default function AdminPage() {
       </div>
 
       <div className={styles.tabContent}>
-        {activeTab === "videos" && <VideosManager />}
+        {activeTab === "tables" && <TablesManager />}
+        {activeTab === "upload" && <FileUpload />}
       </div>
     </div>
   );

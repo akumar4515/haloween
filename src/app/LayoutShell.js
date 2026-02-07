@@ -10,6 +10,7 @@ import AdProviderBanner from "./components/AdProviderBanner";
 import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
 import Footer from "./components/Footer";
 import LanguageSelector from "./components/LanguageSelector";
+import SidebarSections from "./components/SidebarSections";
 
 export default function LayoutShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -123,6 +124,8 @@ export default function LayoutShell({ children }) {
               </li>
             </ul>
           </nav>
+
+          <SidebarSections onLinkClick={() => setSidebarOpen(false)} />
 
           <nav className={styles.navSection}>
             <h3 className={styles.navTitle}>Legal</h3>

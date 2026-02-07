@@ -212,76 +212,87 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
     
     return (
       <div className={styles.videoContainer}>
-        <iframe
-          className={styles.videoPlayer}
-          src={embedUrl}
-          title={title || "Video player"}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          referrerPolicy="no-referrer-when-downgrade"
-          onLoad={() => {
-            // Iframe loaded successfully - clear loading state immediately
-            if (iframeLoadTimeout) {
-              clearTimeout(iframeLoadTimeout);
-              setIframeLoadTimeout(null);
-            }
-            setIsLoading(false);
-            setHasError(false);
-          }}
-          onError={() => {
-            // onError for iframes is unreliable, especially for cross-origin
-            // Don't act on it - let the timeout handle actual failures
-            // Many iframes will trigger onError even when they load successfully
-          }}
-        />
-        {isLoading && !hasError && (
-          <div className={styles.loadingOverlay}>
-            <div className={styles.loadingSpinner}></div>
-            <p>Loading video...</p>
-            <p style={{ fontSize: '0.85rem', color: '#b2adb9', marginTop: '8px' }}>
-              This may take a few moments
-            </p>
-          </div>
+        {showPreVideoAd && !adCompleted && (
+          <VideoPreRollAd
+            zoneId={EXOCLICK_ZONES.PREROLL_VIDEO}
+            onComplete={handleAdComplete}
+            onSkip={handleAdSkip}
+          />
         )}
-        {hasError && (
-          <div className={styles.errorOverlay}>
-            <p>{errorMessage || "Failed to load video"}</p>
-            {isEporner && embedUrl && (
-              <a 
-                href={embedUrl.replace('/embed/', '/video/')} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ 
-                  color: '#ff5f9c', 
-                  marginTop: '16px', 
-                  display: 'inline-block',
-                  textDecoration: 'none',
-                  padding: '8px 16px',
-                  border: '1px solid #ff5f9c',
-                  borderRadius: '8px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#ff5f9c';
-                  e.target.style.color = '#fff';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#ff5f9c';
-                }}
-              >
-                Watch on Eporner →
-              </a>
+        {(!showPreVideoAd || adCompleted) && (
+          <>
+            <iframe
+              className={styles.videoPlayer}
+              src={embedUrl}
+              title={title || "Video player"}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              onLoad={() => {
+                // Iframe loaded successfully - clear loading state immediately
+                if (iframeLoadTimeout) {
+                  clearTimeout(iframeLoadTimeout);
+                  setIframeLoadTimeout(null);
+                }
+                setIsLoading(false);
+                setHasError(false);
+              }}
+              onError={() => {
+                // onError for iframes is unreliable, especially for cross-origin
+                // Don't act on it - let the timeout handle actual failures
+                // Many iframes will trigger onError even when they load successfully
+              }}
+            />
+            {isLoading && !hasError && (
+              <div className={styles.loadingOverlay}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Loading video...</p>
+                <p style={{ fontSize: '0.85rem', color: '#b2adb9', marginTop: '8px' }}>
+                  This may take a few moments
+                </p>
+              </div>
             )}
-            {thumbnailUrl && (
-              <img 
-                src={thumbnailUrl} 
-                alt={title || "Video thumbnail"} 
-                className={styles.errorThumbnail}
-              />
+            {hasError && (
+              <div className={styles.errorOverlay}>
+                <p>{errorMessage || "Failed to load video"}</p>
+                {isEporner && embedUrl && (
+                  <a 
+                    href={embedUrl.replace('/embed/', '/video/')} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ 
+                      color: '#ff5f9c', 
+                      marginTop: '16px', 
+                      display: 'inline-block',
+                      textDecoration: 'none',
+                      padding: '8px 16px',
+                      border: '1px solid #ff5f9c',
+                      borderRadius: '8px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#ff5f9c';
+                      e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.color = '#ff5f9c';
+                    }}
+                  >
+                    Watch on Eporner →
+                  </a>
+                )}
+                {thumbnailUrl && (
+                  <img 
+                    src={thumbnailUrl} 
+                    alt={title || "Video thumbnail"} 
+                    className={styles.errorThumbnail}
+                  />
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
     );
@@ -298,43 +309,54 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
     // Might be an embed URL we didn't detect - try as iframe
     return (
       <div className={styles.videoContainer}>
-        <iframe
-          className={styles.videoPlayer}
-          src={videoUrl}
-          title={title || "Video player"}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          onLoad={() => {
-            setIsLoading(false);
-            setHasError(false);
-          }}
-          onError={() => {
-            setHasError(true);
-            setErrorMessage("Failed to load video. Trying alternative method...");
-            setIsLoading(false);
-          }}
-        />
-        {isLoading && !hasError && (
-          <div className={styles.loadingOverlay}>
-            <div className={styles.loadingSpinner}></div>
-            <p>Loading video...</p>
-            <p style={{ fontSize: '0.85rem', color: '#b2adb9', marginTop: '8px' }}>
-              Please wait, this may take a moment
-            </p>
-          </div>
+        {showPreVideoAd && !adCompleted && (
+          <VideoPreRollAd
+            zoneId={EXOCLICK_ZONES.PREROLL_VIDEO}
+            onComplete={handleAdComplete}
+            onSkip={handleAdSkip}
+          />
         )}
-        {hasError && (
-          <div className={styles.errorOverlay}>
-            <p>{errorMessage || "Failed to load video"}</p>
-            {thumbnailUrl && (
-              <img 
-                src={thumbnailUrl} 
-                alt={title || "Video thumbnail"} 
-                className={styles.errorThumbnail}
-              />
+        {(!showPreVideoAd || adCompleted) && (
+          <>
+            <iframe
+              className={styles.videoPlayer}
+              src={videoUrl}
+              title={title || "Video player"}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              onLoad={() => {
+                setIsLoading(false);
+                setHasError(false);
+              }}
+              onError={() => {
+                setHasError(true);
+                setErrorMessage("Failed to load video. Trying alternative method...");
+                setIsLoading(false);
+              }}
+            />
+            {isLoading && !hasError && (
+              <div className={styles.loadingOverlay}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Loading video...</p>
+                <p style={{ fontSize: '0.85rem', color: '#b2adb9', marginTop: '8px' }}>
+                  Please wait, this may take a moment
+                </p>
+              </div>
             )}
-          </div>
+            {hasError && (
+              <div className={styles.errorOverlay}>
+                <p>{errorMessage || "Failed to load video"}</p>
+                {thumbnailUrl && (
+                  <img 
+                    src={thumbnailUrl} 
+                    alt={title || "Video thumbnail"} 
+                    className={styles.errorThumbnail}
+                  />
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     );
@@ -345,40 +367,51 @@ export default function VideoPlayerWithTracking({ videoUrl, thumbnailUrl, title,
   if (useIframeFallback) {
     return (
       <div className={styles.videoContainer}>
-        <iframe
-          className={styles.videoPlayer}
-          src={videoUrl}
-          title={title || "Video player"}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          onLoad={() => {
-            setIsLoading(false);
-            setHasError(false);
-          }}
-          onError={() => {
-            setHasError(true);
-            setErrorMessage("Failed to load video in both video and iframe modes");
-            setIsLoading(false);
-          }}
-        />
-        {isLoading && (
-          <div className={styles.loadingOverlay}>
-            <div className={styles.loadingSpinner}></div>
-            <p>Loading video (iframe mode)...</p>
-          </div>
+        {showPreVideoAd && !adCompleted && (
+          <VideoPreRollAd
+            zoneId={EXOCLICK_ZONES.PREROLL_VIDEO}
+            onComplete={handleAdComplete}
+            onSkip={handleAdSkip}
+          />
         )}
-        {hasError && (
-          <div className={styles.errorOverlay}>
-            <p>{errorMessage || "Failed to load video"}</p>
-            {thumbnailUrl && (
-              <img 
-                src={thumbnailUrl} 
-                alt={title || "Video thumbnail"} 
-                className={styles.errorThumbnail}
-              />
+        {(!showPreVideoAd || adCompleted) && (
+          <>
+            <iframe
+              className={styles.videoPlayer}
+              src={videoUrl}
+              title={title || "Video player"}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              onLoad={() => {
+                setIsLoading(false);
+                setHasError(false);
+              }}
+              onError={() => {
+                setHasError(true);
+                setErrorMessage("Failed to load video in both video and iframe modes");
+                setIsLoading(false);
+              }}
+            />
+            {isLoading && (
+              <div className={styles.loadingOverlay}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Loading video (iframe mode)...</p>
+              </div>
             )}
-          </div>
+            {hasError && (
+              <div className={styles.errorOverlay}>
+                <p>{errorMessage || "Failed to load video"}</p>
+                {thumbnailUrl && (
+                  <img 
+                    src={thumbnailUrl} 
+                    alt={title || "Video thumbnail"} 
+                    className={styles.errorThumbnail}
+                  />
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     );

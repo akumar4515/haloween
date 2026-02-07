@@ -194,6 +194,12 @@
   overflow-y: auto;
   transition: transform 0.2s ease, opacity 0.2s ease;
   z-index: 100;
+  scrollbar-width: none; /* Firefox */
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .sidebarHidden {
@@ -582,9 +588,25 @@
   margin-bottom: 4px;
 }
 
+.affiliateTitle {
+  color: #7fd1ff;
+}
+
+.epornerTitle {
+  color: #ff6f91;
+}
+
 .cardMeta {
   font-size: 0.8rem;
   color: #b2adb9;
+}
+
+.cardChannel {
+  font-size: 0.78rem;
+  color: #7fd1ff;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .channelLink {
@@ -689,6 +711,14 @@
   font-size: 0.65rem;
 }
 
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #f5f5f7;
+  margin-bottom: 24px;
+  padding: 0 16px;
+}
+
 .loading,
 .emptyState {
   padding: 32px;
@@ -762,6 +792,24 @@
   border-color: #ff5f9c;
   background-color: #201a29;
   color: #ff5f9c;
+}
+
+.categoryPillEporner {
+  border-color: #5a2a3a;
+  color: #ff6f91;
+}
+
+.categoryPillEporner:hover {
+  border-color: #ff6f91;
+  background-color: #24151b;
+  color: #ff9ab3;
+}
+
+.sectionTitle {
+  margin: 16px 0 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ff6f91;
 }
 
 .actorGrid {
