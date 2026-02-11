@@ -40,6 +40,13 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
+  const isSameOrigin = url.origin === self.location.origin;
+
+  // Never intercept non-GET requests (e.g. multipart file uploads).
+  // Let the browser/network stack handle them directly.
+  if (request.method !== 'GET') {
+    return;
+  }
 
   // Always fetch latest HTML for navigations
   if (request.mode === 'navigate') {
@@ -69,7 +76,7 @@ self.addEventListener('fetch', event => {
   }
 
   // Cache API responses (videos, thumbnails) with short TTL
-  else if (url.pathname.startsWith('/api/')) {
+  else if (isSameOrigin && url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request).then(response => {
         // Don't cache 404 errors - they indicate missing endpoints

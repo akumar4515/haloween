@@ -84,7 +84,7 @@ export const metadata = {
     description: "Watch free HD adult videos on Flovex. High-quality porn videos with fast streaming and mobile optimization.",
     siteName: "Flovex",
     images: [{
-      url: "/logo.png",
+      url: "/web-logo.png",
       width: 400,
       height: 400,
       alt: "Flovex Logo"
@@ -94,7 +94,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "Flovex - Free HD Adult Videos",
     description: "Watch free HD adult videos on Flovex. High-quality porn videos with fast streaming and mobile optimization.",
-    images: ["/logo.png"]
+    images: ["/web-logo.png"]
   },
   robots: {
     index: true,
@@ -167,6 +167,16 @@ export default function RootLayout({ children }) {
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
+                  // In local development, avoid SW caching/interception issues.
+                  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                      for (let registration of registrations) {
+                        registration.unregister();
+                      }
+                    });
+                    return;
+                  }
+
                   // Unregister old service workers first
                   navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     for(let registration of registrations) {

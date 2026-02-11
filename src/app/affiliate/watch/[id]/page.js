@@ -46,17 +46,57 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    const title = video.title || "Untitled Video";
-    const description = video.description || `Watch ${title} on Flovex.`;
+    const baseTitle = video.title || "Untitled Video";
+
+    const primaryCategory = Array.isArray(video.categories)
+      ? video.categories[0]
+      : undefined;
+    const primaryPornstar = Array.isArray(video.pornstars)
+      ? video.pornstars[0]
+      : undefined;
+    const primaryChannel = Array.isArray(video.channels)
+      ? video.channels[0]
+      : undefined;
+
+    const contextParts = [
+      primaryCategory,
+      primaryPornstar,
+      primaryChannel,
+    ].filter(Boolean);
+
+    const seoTitle = contextParts.length
+      ? `${baseTitle} – ${contextParts.join(" • ")} | Flovex`
+      : `${baseTitle} | Flovex`;
+
+    const baseDescription =
+      video.description ||
+      `Watch ${baseTitle} in full HD on Flovex. Fast streaming and premium scenes.`;
+
+    const extraContext =
+      [
+        primaryCategory && `Category: ${primaryCategory}`,
+        primaryPornstar && `Starring: ${primaryPornstar}`,
+        primaryChannel && `Channel: ${primaryChannel}`,
+      ]
+        .filter(Boolean)
+        .join(" · ") || "";
+
+    const description = extraContext
+      ? `${baseDescription} ${extraContext}.`
+      : baseDescription;
+
     const thumbnail = video.thumbnail_url || "/logo.png";
     
     const videoUrl = `${siteUrl}/affiliate/watch/${id}`;
 
     return {
-      title: `${title} | Flovex`,
-      description: description.length > 160 ? description.substring(0, 157) + "..." : description,
+      title: seoTitle,
+      description:
+        description.length > 160
+          ? description.substring(0, 157) + "..."
+          : description,
       openGraph: {
-        title: title,
+        title: seoTitle,
         description: description,
         url: videoUrl,
         siteName: "Flovex",
@@ -65,15 +105,18 @@ export async function generateMetadata({ params }) {
             url: thumbnail,
             width: 1280,
             height: 720,
-            alt: title,
+            alt: baseTitle,
           },
         ],
         type: "video.other",
       },
       twitter: {
         card: "summary_large_image",
-        title: title,
-        description: description.length > 200 ? description.substring(0, 197) + "..." : description,
+        title: seoTitle,
+        description:
+          description.length > 200
+            ? description.substring(0, 197) + "..."
+            : description,
         images: thumbnail ? [thumbnail] : ["/logo.png"],
       },
       alternates: {

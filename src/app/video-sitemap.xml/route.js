@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
 
-// Helper function to fetch videos for sitemap
-async function fetchVideosForSitemap(limit = 1000) {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const getApiRoot = () => {
+  const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const normalized = raw.replace(/\/+$/, "");
+  return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
+};
+
+// Helper function to fetch Eporner videos for sitemap
+async function fetchEpornerVideosForSitemap(limit = 1000) {
+  const apiRoot = getApiRoot();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   try {
     // Fetch videos from the API (limit to recent/popular ones for sitemap)
-    const searchUrl = new URL(`${baseUrl}/api/eporner/videos`, "http://localhost");
+    const searchUrl = new URL(`${apiRoot}/eporner/videos`, "http://localhost");
     searchUrl.searchParams.set("page", "1");
     searchUrl.searchParams.set("per_page", String(limit));
     searchUrl.searchParams.set("thumbsize", "big");
@@ -15,7 +21,7 @@ async function fetchVideosForSitemap(limit = 1000) {
     const res = await fetch(searchUrl.toString(), { cache: "no-store" });
 
     if (!res.ok) {
-      console.error('Failed to fetch videos for sitemap:', res.status);
+      console.error('Failed to fetch Eporner videos for sitemap:', res.status);
       return [];
     }
 
@@ -48,7 +54,60 @@ async function fetchVideosForSitemap(limit = 1000) {
     }));
 
   } catch (error) {
-    console.error('Error fetching videos for sitemap:', error);
+    console.error('Error fetching Eporner videos for sitemap:', error);
+    return [];
+  }
+}
+
+// Helper function to fetch affiliate videos for sitemap
+async function fetchAffiliateVideosForSitemap(limit = 1000) {
+  const apiRoot = getApiRoot();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  try {
+    // Fetch affiliate videos for sitemap
+    const searchUrl = new URL(`${apiRoot}/affiliate/videos`, "http://localhost");
+    searchUrl.searchParams.set("page", "1");
+    searchUrl.searchParams.set("per_page", String(limit));
+
+    const res = await fetch(searchUrl.toString(), { cache: "no-store" });
+
+    if (!res.ok) {
+      console.error('Failed to fetch affiliate videos for sitemap:', res.status);
+      return [];
+    }
+
+    const data = await res.json();
+
+    if (!data.success || !data.data || !Array.isArray(data.data)) {
+      return [];
+    }
+
+    return data.data.map(video => {
+      // Build tags from categories, pornstars, and channels
+      const tags = [
+        ...(video.categories || []),
+        ...(video.pornstars || []),
+        ...(video.channels || [])
+      ].filter(Boolean).join(', ');
+
+      return {
+        id: video.id,
+        title: video.title || 'Untitled Video',
+        description: video.description || video.title || '',
+        thumbnail_url: video.thumbnail_url || '',
+        video_url: video.video_url || video.iframe_url || '',
+        duration: video.duration || video.embed_duration || 0,
+        views: 0, // Affiliate videos may not have views
+        rating: 0, // Affiliate videos may not have rating
+        tags: tags,
+        added: video.published_at || video.created_at || '',
+        url: `${siteUrl}/affiliate/watch/${video.id}`
+      };
+    });
+
+  } catch (error) {
+    console.error('Error fetching affiliate videos for sitemap:', error);
     return [];
   }
 }
@@ -57,8 +116,14 @@ export async function GET() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   try {
-    // Fetch videos for sitemap (limit to 1000 for performance)
-    const videos = await fetchVideosForSitemap(1000);
+    // Fetch videos from both sources in parallel (limit to 1000 each for performance)
+    const [epornerVideos, affiliateVideos] = await Promise.all([
+      fetchEpornerVideosForSitemap(1000),
+      fetchAffiliateVideosForSitemap(1000),
+    ]);
+
+    // Combine both video sources
+    const videos = [...epornerVideos, ...affiliateVideos];
 
     // Generate video sitemap XML
     const videoEntries = videos.map(video => {

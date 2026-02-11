@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../admin.module.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function FileUpload() {
   const [file, setFile] = useState(null);
@@ -16,6 +16,17 @@ export default function FileUpload() {
   const [deleteEndDate, setDeleteEndDate] = useState("");
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
+
+  const getApiBase = () => {
+    const raw = (API_BASE || "").trim();
+    const withProtocol = /^https?:\/\//i.test(raw) ? raw : `http://${raw}`;
+    const normalized = withProtocol.replace(/\/+$/, "");
+    // Prefer IPv4 loopback in local dev to avoid localhost resolution/proxy quirks.
+    if (typeof window !== "undefined") {
+      return normalized.replace("://localhost", "://127.0.0.1");
+    }
+    return normalized;
+  };
 
   const getAuthHeader = () => {
     const authData = localStorage.getItem("adminAuth");
@@ -56,6 +67,9 @@ export default function FileUpload() {
       const formData = new FormData();
       formData.append("file", file);
       const authHeader = getAuthHeader();
+      const headers = {};
+      if (authHeader) headers.Authorization = authHeader;
+      const url = `${getApiBase()}/api/admin/upload`;
 
       // Simulate progress
       const progressInterval = setInterval(() => {
@@ -68,11 +82,9 @@ export default function FileUpload() {
         });
       }, 200);
 
-      const res = await fetch(`${API_BASE}/api/admin/upload`, {
+      const res = await fetch(url, {
         method: "POST",
-        headers: {
-          Authorization: authHeader,
-        },
+        headers,
         body: formData,
       });
 
@@ -85,7 +97,10 @@ export default function FileUpload() {
         return;
       }
 
-      const data = await res.json();
+      const contentType = res.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await res.json()
+        : { success: false, error: await res.text() };
 
       if (data.success) {
         const skipped = typeof data.skipped === "number" ? data.skipped : 0;
@@ -115,7 +130,13 @@ export default function FileUpload() {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      setError("Failed to upload file. Please try again.");
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        setError(
+          `Failed to connect to backend server at ${getApiBase()}. Please verify backend is running and accessible.`
+        );
+      } else {
+        setError("Failed to upload file. Please try again.");
+      }
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -132,12 +153,13 @@ export default function FileUpload() {
     setSuccess("");
     try {
       const authHeader = getAuthHeader();
-      const res = await fetch(`${API_BASE}/api/admin/delete-all`, {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (authHeader) headers.Authorization = authHeader;
+      const res = await fetch(`${getApiBase()}/api/admin/delete-all`, {
         method: "POST",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (res.status === 401) {
@@ -179,12 +201,13 @@ export default function FileUpload() {
     setSuccess("");
     try {
       const authHeader = getAuthHeader();
-      const res = await fetch(`${API_BASE}/api/admin/delete-by-date`, {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      if (authHeader) headers.Authorization = authHeader;
+      const res = await fetch(`${getApiBase()}/api/admin/delete-by-date`, {
         method: "POST",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({
           startDate: deleteStartDate,
           endDate: deleteEndDate || undefined,
