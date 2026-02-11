@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import styles from "../../../watch/[id]/watch.module.css";
 import AffiliateVideoPlayer from "../../../components/AffiliateVideoPlayer";
+import FlovexBarAd from "../../../components/FlovexBarAd";
 import AffiliateRecommendations from "../../../components/AffiliateRecommendations";
 import RecommendationsSection from "../../../watch/[id]/RecommendationsSection";
 
@@ -227,7 +228,9 @@ export default async function AffiliateWatchPage({ params }) {
   return (
     <div className={styles.main}>
       <section className={styles.playerSection}>
+        <FlovexBarAd snippetPath="/flovex.net_bar_above_player.txt" />
         <AffiliateVideoPlayer video={video} />
+        <FlovexBarAd snippetPath="/flovex.net_bar_under_player.txt" />
         <h1 className={styles.title}>{video.title || "Untitled"}</h1>
         <div className={styles.meta}>
           {video.duration && (

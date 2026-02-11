@@ -3,6 +3,7 @@ import styles from "./watch.module.css";
 import RecommendationsSection from "./RecommendationsSection";
 import AffiliateRecommendationsByQuery from "../../components/AffiliateRecommendationsByQuery";
 import VideoPlayerWithTracking from "../../components/VideoPlayerWithTracking";
+import FlovexBarAd from "../../components/FlovexBarAd";
 import AdProviderBanner from "../../components/AdProviderBanner";
 import { shouldShowAd } from "../../config/ads";
 
@@ -356,12 +357,14 @@ export default async function WatchPage({ params }) {
   return (
     <div className={styles.main}>
       <section className={styles.playerSection}>
+          <FlovexBarAd snippetPath="/flovex.net_bar_above_player.txt" />
           <VideoPlayerWithTracking
             videoUrl={video.embed_url || video.video_url || video.url || video.embed || video.raw?.url || video.raw?.embed || ""}
             thumbnailUrl={video.thumbnail_url || video.thumbnail || video.thumb || video.default_thumb || video.raw?.thumb || video.raw?.default_thumb || ""}
             title={video.title || video.title_clean || "Untitled"}
             videoId={video.id}
           />
+          <FlovexBarAd snippetPath="/flovex.net_bar_under_player.txt" />
           <h1 className={styles.title}>{video.title || video.title_clean || "Untitled"}</h1>
           <div className={styles.meta}>
             {video.views || video.view ? (
