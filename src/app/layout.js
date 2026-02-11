@@ -124,7 +124,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/web-logo.png" />
         <meta name="theme-color" content="#ff5f9c" />
         <meta name="msapplication-TileColor" content="#050507" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
