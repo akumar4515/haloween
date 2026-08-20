@@ -29,6 +29,16 @@
   --radius: 12px;
   --radius-pill: 999px;
 
+  /* Stacking order — chrome (header/sidebar/age gate) sits above every ad
+     overlay. Keep these at 6 significant digits or fewer: the CSS minifier
+     rounds longer numbers and collapses them into a single value. */
+  --z-bottom-nav: 998;
+  --z-sidebar-backdrop: 999990;
+  --z-sidebar: 999991;
+  --z-header: 999992;
+  --z-skip-link: 999993;
+  --z-age-gate: 999994;
+
   --background: var(--bg);
   --foreground: var(--text);
 }

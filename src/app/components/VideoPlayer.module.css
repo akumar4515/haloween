@@ -5,6 +5,9 @@
   background-color: #000;
   border-radius: 12px;
   overflow: hidden;
+  /* Own stacking context: ad overlays inside stay below the app chrome */
+  z-index: 0;
+  isolation: isolate;
 }
 
 .videoPlayer {
@@ -85,12 +88,17 @@
   background-color: #000;
   border-radius: 12px;
   overflow: hidden;
+  /* Own stacking context: ad overlays inside stay below the app chrome */
+  z-index: 0;
+  isolation: isolate;
 }
 
 .videoWrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .videoWrapper iframe,

@@ -72,7 +72,7 @@ export default function PreVideoAd({
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 1000;
+        z-index: 3;
         background-color: rgba(0, 0, 0, 0.8);
         display: flex;
         justify-content: center;
@@ -92,7 +92,7 @@ export default function PreVideoAd({
           background: rgba(0, 0, 0, 0.7);
           padding: 5px 10px;
           border-radius: 4px;
-          z-index: 1001;
+          z-index: 4;
         ">
           Ad
         </div>
@@ -164,7 +164,7 @@ export default function PreVideoAd({
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: 1000,
+        zIndex: 3,
         pointerEvents: 'none'
       }}
     >
@@ -177,7 +177,7 @@ export default function PreVideoAd({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 1000,
+            zIndex: 3,
             pointerEvents: "auto",
           }}
         >
@@ -217,7 +217,7 @@ export default function PreVideoAd({
           borderRadius: "6px",
           fontSize: "12px",
           fontWeight: "bold",
-          zIndex: 1001,
+          zIndex: 4,
           pointerEvents: "auto",
           cursor: remainingSeconds > 0 ? "default" : "pointer"
         }}
@@ -240,7 +240,7 @@ export default function PreVideoAd({
             justifyContent: 'center',
             alignItems: 'center',
             color: 'white',
-            zIndex: 999
+            zIndex: 2
           }}
         >
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎬</div>

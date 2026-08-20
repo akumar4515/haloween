@@ -95,6 +95,13 @@ export default function FlovexBarAd({ snippetPath, className }) {
     };
   }, [snippetPath]);
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      // Own stacking context so the bar library cannot paint over the sidebar
+      style={{ position: "relative", zIndex: 0, isolation: "isolate" }}
+    />
+  );
 }
 

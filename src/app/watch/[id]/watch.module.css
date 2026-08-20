@@ -19,6 +19,8 @@
   background-color: #000;
   border-radius: var(--radius);
   overflow: hidden;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .video {

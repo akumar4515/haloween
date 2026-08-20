@@ -18,7 +18,7 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1001;
+  z-index: var(--z-header);
   height: var(--header-h);
   display: flex;
   align-items: center;
@@ -222,7 +222,7 @@
   position: absolute;
   left: -9999px;
   top: 0;
-  z-index: 2000;
+  z-index: var(--z-skip-link);
   padding: 10px 16px;
   border-radius: 0 0 var(--radius-sm) 0;
   background-color: var(--accent);
@@ -265,7 +265,8 @@
   background-color: var(--bg);
   overflow-y: auto;
   overscroll-behavior: contain;
-  z-index: 1000;
+  z-index: var(--z-sidebar);
+  isolation: isolate;
   transition: transform 0.2s ease;
 }
 
@@ -295,7 +296,7 @@
 .sidebarBackdrop {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: var(--z-sidebar-backdrop);
   background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -432,7 +433,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 998;
+  z-index: var(--z-bottom-nav);
   padding-bottom: env(safe-area-inset-bottom);
   background-color: var(--bg-header);
   border-top: 1px solid var(--border);
