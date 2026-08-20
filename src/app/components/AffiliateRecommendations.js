@@ -1,5 +1,7 @@
 "use client";
 
+import { RECOMMENDATIONS_PAGE_SIZE } from "../config/feed";
+
 import { useEffect, useState } from "react";
 import AffiliateVideoCard from "./AffiliateVideoCard";
 import styles from "../watch/[id]/watch.module.css";
@@ -22,7 +24,7 @@ export default function AffiliateRecommendations({ videoId, title = "Recommended
       const apiRoot = getApiRoot();
       const url = new URL(`${apiRoot}/affiliate/videos/${videoId}/recommendations`, "http://localhost");
       url.searchParams.set("page", String(pageToLoad));
-      url.searchParams.set("per_page", "24");
+      url.searchParams.set("per_page", String(RECOMMENDATIONS_PAGE_SIZE));
 
       const res = await fetch(url.toString(), { cache: "no-store" });
       if (!res.ok) return;

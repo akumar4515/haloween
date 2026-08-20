@@ -34,7 +34,7 @@ export const AD_PLACEMENTS = {
 
   // Global ads
   HEADER_BANNER: false, // Enable if you want header banner
-  FOOTER_BANNER: false, // Enable if you want footer banner
+  FOOTER_BANNER: true, // Rendered by LayoutShell above the footer, on every page
 
   // Library page ads
   LIBRARY_CONTENT_BANNER: true,

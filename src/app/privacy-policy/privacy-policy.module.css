@@ -5,22 +5,22 @@
 }
 
 .content {
-  background-color: #15131c;
+  background-color: var(--surface);
   border-radius: 16px;
   padding: 32px;
-  border: 1px solid #332b3c;
+  border: 1px solid var(--border);
 }
 
 .title {
   font-size: 2rem;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #f5f5f7;
+  color: var(--text);
 }
 
 .lastUpdated {
   font-size: 0.9rem;
-  color: #b2adb9;
+  color: var(--text-muted);
   margin-bottom: 32px;
 }
 
@@ -32,7 +32,7 @@
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 12px;
-  color: #f5f5f7;
+  color: var(--text);
 }
 
 .subsectionTitle {
@@ -40,20 +40,20 @@
   font-weight: 600;
   margin-top: 16px;
   margin-bottom: 8px;
-  color: #f5f5f7;
+  color: var(--text);
 }
 
 .paragraph {
   font-size: 0.95rem;
   line-height: 1.6;
-  color: #b2adb9;
+  color: var(--text-muted);
   margin-bottom: 12px;
 }
 
 .list {
   margin-left: 24px;
   margin-bottom: 16px;
-  color: #b2adb9;
+  color: var(--text-muted);
 }
 
 .list li {
@@ -63,7 +63,7 @@
 }
 
 .list li strong {
-  color: #ff5f9c;
+  color: var(--accent);
   font-weight: 600;
 }
 

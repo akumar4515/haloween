@@ -1,7 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "./components/ConditionalLayout";
-import { shouldShowAd, EXOCLICK_ZONES } from "./config/ads";
 import PopunderScript from "./components/PopunderScript";
 
 const geistSans = Geist({
@@ -17,54 +16,6 @@ const geistMono = Geist_Mono({
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-  { code: 'pt', name: 'Português', flag: '🇵🇹' },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' },
-  { code: 'ko', name: '한국어', flag: '🇰🇷' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' }
-];
-
-// Generate hreflang links for international SEO
-function generateHreflangLinks(pathname = '/') {
-  const links = [];
-
-  // Clean pathname (remove language prefix if present)
-  let cleanPath = pathname;
-  const pathParts = pathname.split('/').filter(Boolean);
-  if (pathParts.length > 0 && SUPPORTED_LANGUAGES.some(lang => lang.code === pathParts[0])) {
-    cleanPath = '/' + pathParts.slice(1).join('/');
-  }
-  if (cleanPath === '') cleanPath = '/';
-
-  // Add hreflang for each supported language
-  SUPPORTED_LANGUAGES.forEach(lang => {
-    const href = lang.code === 'en'
-      ? `${siteUrl}${cleanPath}`
-      : `${siteUrl}/${lang.code}${cleanPath}`;
-
-    links.push({
-      rel: 'alternate',
-      hreflang: lang.code,
-      href
-    });
-  });
-
-  // Add x-default for default language
-  links.push({
-    rel: 'alternate',
-    hreflang: 'x-default',
-    href: `${siteUrl}${cleanPath}`
-  });
-
-  return links;
-}
-
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -74,9 +25,9 @@ export const metadata = {
   description: "Watch free HD adult videos on Flovex. High-quality porn videos with fast streaming and mobile optimization.",
   keywords: ["free porn", "adult videos", "HD porn", "porn streaming", "adult entertainment"],
   applicationName: "Flovex",
-  alternates: {
-    canonical: "/",
-  },
+  // No canonical here on purpose: child pages inherit metadata, so a canonical
+  // set at the root makes every page that omits one look like a duplicate of
+  // the home page. Each page declares its own via buildMetadata().
   openGraph: {
     type: "website",
     url: siteUrl,
@@ -108,17 +59,15 @@ export const metadata = {
     },
   },
   other: {
-    "rating": "RTA-5042-1996-1400-1577-RTA",
+    // RTA label: the value parental-control software looks for. It must be
+    // this exact string, so it cannot double as a free-text "mature" rating.
+    rating: "RTA-5042-1996-1400-1577-RTA",
     "content-rating": "adult",
     "revisit-after": "1 day",
-    "rating": "mature"
-  }
+  },
 };
 
 export default function RootLayout({ children }) {
-  // Generate hreflang links for current page
-  const hreflangLinks = generateHreflangLinks();
-
   return (
     <html lang="en">
       <head>
@@ -141,15 +90,6 @@ export default function RootLayout({ children }) {
           content="Sec-CH-UA https://s.pemsrv.com; Sec-CH-UA-Mobile https://s.pemsrv.com; Sec-CH-UA-Arch https://s.pemsrv.com; Sec-CH-UA-Model https://s.pemsrv.com; Sec-CH-UA-Platform https://s.pemsrv.com; Sec-CH-UA-Platform-Version https://s.pemsrv.com; Sec-CH-UA-Bitness https://s.pemsrv.com; Sec-CH-UA-Full-Version-List https://s.pemsrv.com; Sec-CH-UA-Full-Version https://s.pemsrv.com;"
         />
 
-        {/* International SEO - hreflang links */}
-        {hreflangLinks.map((link, index) => (
-          <link
-            key={index}
-            rel={link.rel}
-            hrefLang={link.hreflang}
-            href={link.href}
-          />
-        ))}
 
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://www.eporner.com" />

@@ -1,3 +1,4 @@
+import { SITE_URL } from "../../../lib/seo";
 async function fetchVideo(id) {
   const baseUrl =
     process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -114,6 +115,7 @@ export default async function AMPWatchPage({ params }) {
         <head>
           <meta charSet="utf-8" />
           <script async src="https://cdn.ampproject.org/v0.js"></script>
+          <link rel="canonical" href={`${SITE_URL}/watch/${id}`} />
           <title>Video Not Found | Flovex AMP</title>
         </head>
         <body>
@@ -141,6 +143,8 @@ export default async function AMPWatchPage({ params }) {
         <script async custom-element="amp-img" src="https://cdn.ampproject.org/v0/amp-img-0.1.js"></script>
         <script async custom-element="amp-video-iframe" src="https://cdn.ampproject.org/v0/amp-video-iframe-0.1.js"></script>
         <script async custom-element="amp-accordion" src="https://cdn.ampproject.org/v0/amp-accordion-0.1.js"></script>
+        {/* Points at the non-AMP page so ranking signals consolidate there. */}
+        <link rel="canonical" href={`${SITE_URL}/watch/${id}`} />
         <title>{videoTitle} | Free HD Porn | Flovex AMP</title>
         <meta name="description" content={`${videoDescription.substring(0, 150)}... Watch free HD adult video on Flovex.`} />
         <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />

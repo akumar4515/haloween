@@ -3,6 +3,11 @@ import AuthCallbackClient from "./AuthCallbackClient";
 
 export const dynamic = "force-dynamic";
 
+// A transient redirect target — never something that should be indexed.
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default function AuthCallbackPage() {
   return (
     <Suspense

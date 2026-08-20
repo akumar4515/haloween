@@ -1,13 +1,15 @@
 .main {
-  padding: 16px 24px 32px;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1280px;
   margin: 0 auto;
+  padding: 0;
 }
+
+/* ------------------------------- Player ---------------------------------- */
 
 .playerSection {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 .playerWrapper {
@@ -15,7 +17,7 @@
   width: 100%;
   padding-bottom: 56.25%; /* 16:9 */
   background-color: #000;
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
@@ -30,89 +32,78 @@
   border: none;
 }
 
+/* ------------------------------ Video info -------------------------------- */
+
 .title {
-  font-size: 1.4rem;
+  margin-top: 16px;
+  font-size: 1.25rem;
   font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
 }
 
 .meta {
-  font-size: 0.9rem;
-  color: #a0a0a0;
+  margin-top: 6px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
 }
 
 .channelLink {
-  color: #ff5f9c;
-  text-decoration: none;
+  color: var(--text);
   font-weight: 500;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .channelLink:hover {
-  color: #ee8db2;
-  text-decoration: underline;
+  color: var(--accent);
+}
+
+/* The grey info panel under a YouTube video */
+.infoPanel {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background-color: var(--surface);
 }
 
 .description {
-  margin-top: 8px;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   line-height: 1.5;
+  color: var(--text);
+  white-space: pre-line;
 }
 
 .tagsRow {
-  margin-top: 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .tag {
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid #333;
-  font-size: 0.75rem;
-  color: #ff5f9c;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s ease;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-2);
+  color: var(--text);
+  font-size: 0.8125rem;
+  transition: background-color 0.15s ease;
 }
 
 .tag:hover {
-  border-color: #ff5f9c;
-  background-color: #201a29;
-  color: #ee8db2;
+  background-color: var(--surface-3);
 }
 
-.tagCategory {
-  color: #ff5f9c;
-  border-color: #332b3c;
-}
-
-.tagCategory:hover {
-  border-color: #ff5f9c;
-  color: #ee8db2;
-}
-
-.tagPornstar {
-  color: #ffb86c;
-  border-color: #4a3a2a;
-}
-
-.tagPornstar:hover {
-  border-color: #ffb86c;
-  color: #ffd6a1;
-}
-
+.tagCategory,
+.tagPornstar,
 .tagChannel {
-  color: #7fd1ff;
-  border-color: #2b3b4a;
-}
-
-.tagChannel:hover {
-  border-color: #7fd1ff;
-  color: #b8e7ff;
+  color: var(--text);
 }
 
 .actorsSection {
@@ -120,69 +111,68 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  font-size: 0.9rem;
+  gap: 6px;
+  font-size: 0.875rem;
 }
 
 .sectionLabel {
-  color: #a0a0a0;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .actorsList {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
 }
 
 .actorLink {
-  color: #ff5f9c;
-  text-decoration: none;
+  color: var(--text);
   font-weight: 500;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .actorLink:hover {
-  color: #ee8db2;
-  text-decoration: underline;
+  color: var(--accent);
 }
 
 .cast {
   margin-top: 8px;
-  font-size: 0.9rem;
-  color: #d0d0d0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
 }
 
 .notFound {
-  padding: 32px;
+  padding: 64px 24px;
   text-align: center;
-  color: #a0a0a0;
+  color: var(--text-muted);
 }
+
+/* --------------------------------- Ads ----------------------------------- */
 
 .topBannerAdContainer {
   margin: 24px 0;
-  padding: 16px 0;
   text-align: center;
   width: 100%;
 }
 
+/* ---------------------------- Recommendations ----------------------------- */
+
 .recommendationsSection {
-  margin-top: 48px;
-  padding-top: 32px;
-  border-top: 1px solid #333;
+  margin-top: 32px;
 }
 
 .recommendationsTitle {
-  font-size: 1.3rem;
+  margin-bottom: 16px;
+  font-size: 1.125rem;
   font-weight: 600;
-  margin-bottom: 20px;
-  color: #f1f1f1;
+  color: var(--text);
 }
 
 .recommendationsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  gap: 32px 16px;
 }
 
 .loadMoreContainer {
@@ -192,104 +182,73 @@
 }
 
 .loadMoreButton {
-  padding: 12px 32px;
-  border-radius: 999px;
-  border: 1px solid #332b3c;
-  background-color: #15131c;
-  color: #ff5f9c;
-  font-size: 0.9rem;
-  font-weight: 600;
+  height: 36px;
+  padding: 0 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease;
 }
 
 .loadMoreButton:hover {
-  border-color: #ff5f9c;
-  background-color: #201a29;
-  color: #ee8db2;
+  background-color: var(--surface-2);
+}
+
+.loadMoreButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ------------------------------ Responsive -------------------------------- */
+
+@media (max-width: 1024px) {
+  .recommendationsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 28px 16px;
+  }
 }
 
 @media (max-width: 768px) {
-  .main {
-    padding: 12px 16px 24px;
-  }
-
-  .topBannerAdContainer {
-    margin: 20px 0;
-    padding: 12px 0;
-  }
-
   .title {
-    font-size: 1.2rem;
-  }
-
-  .meta {
-    font-size: 0.85rem;
-    flex-wrap: wrap;
-  }
-
-  .description {
-    font-size: 0.9rem;
-  }
-
-  .recommendationsTitle {
-    font-size: 1.1rem;
+    font-size: 1.0625rem;
   }
 
   .recommendationsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px 12px;
   }
 }
 
+/* Phone: the player goes edge to edge, text keeps its gutters */
 @media (max-width: 640px) {
-  .main {
-    padding: 12px 12px 24px;
+  .playerWrapper {
+    border-radius: 0;
   }
 
+  .title,
+  .meta,
+  .infoPanel,
+  .tagsRow,
+  .actorsSection,
+  .cast,
+  .recommendationsTitle,
+  .loadMoreContainer,
   .topBannerAdContainer {
-    margin: 16px 0;
-    padding: 10px 0;
+    margin-left: 12px;
+    margin-right: 12px;
   }
 
   .title {
-    font-size: 1.1rem;
-  }
-
-  .meta {
-    font-size: 0.8rem;
-  }
-
-  .description {
-    font-size: 0.85rem;
-  }
-
-  .tagsRow {
-    gap: 4px;
-  }
-
-  .tag {
-    font-size: 0.7rem;
-    padding: 3px 6px;
-  }
-
-  .actorsSection {
-    font-size: 0.85rem;
-  }
-
-  .recommendationsSection {
-    margin-top: 32px;
-    padding-top: 24px;
-  }
-
-  .recommendationsTitle {
+    margin-top: 12px;
     font-size: 1rem;
-    margin-bottom: 16px;
   }
 
   .recommendationsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
   }
 }
-

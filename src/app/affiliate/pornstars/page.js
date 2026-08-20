@@ -1,7 +1,18 @@
 import Link from "next/link";
 import styles from "../../page.module.css";
+import AdProviderBanner from "../../components/AdProviderBanner";
+import { shouldShowAd } from "../../config/ads";
+import { buildMetadata } from "../../lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = buildMetadata({
+  title: "Pornstars",
+  description:
+    "Browse free HD adult videos by pornstar on Flovex. Find videos from your favourite performers with fast streaming and daily updates.",
+  path: "/affiliate/pornstars",
+  keywords: ["pornstars", "porn actresses", "adult performers", "pornstar videos"],
+});
 
 const getApiRoot = () => {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -38,6 +49,22 @@ export default async function PornstarsPage() {
           <p className={styles.listSubtitle}>Browse videos by pornstar</p>
         </div>
       </div>
+
+
+      {shouldShowAd('HOME_CONTENT_BANNER_1') && (
+        <div className={styles.contentAdContainer}>
+          <AdProviderBanner
+            zoneId={
+              process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_ZONE_ID ||
+              "5846062"
+            }
+            adClassName={
+              process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_CLASS ||
+              "eas6a97888e2"
+            }
+          />
+        </div>
+      )}
 
       {pornstars.length === 0 ? (
         <div className={styles.emptyState}>

@@ -3,6 +3,13 @@ import Link from "next/link";
 import styles from "../../../watch/[id]/watch.module.css";
 import AffiliateVideoPlayer from "../../../components/AffiliateVideoPlayer";
 import FlovexBarAd from "../../../components/FlovexBarAd";
+import { RECOMMENDATIONS_PAGE_SIZE } from "../../../config/feed";
+import {
+  absoluteUrl,
+  jsonLdProps,
+  videoObjectJsonLd,
+  breadcrumbJsonLd,
+} from "../../../lib/seo";
 import AffiliateRecommendations from "../../../components/AffiliateRecommendations";
 import RecommendationsSection from "../../../watch/[id]/RecommendationsSection";
 
@@ -42,7 +49,7 @@ export async function generateMetadata({ params }) {
     
     if (!video) {
       return {
-        title: "Video Not Found | Flovex",
+        title: "Video Not Found",
         description: "The requested video could not be found.",
       };
     }
@@ -65,9 +72,10 @@ export async function generateMetadata({ params }) {
       primaryChannel,
     ].filter(Boolean);
 
+    // Bare title: the root layout's "%s | Flovex" template adds the brand.
     const seoTitle = contextParts.length
-      ? `${baseTitle} – ${contextParts.join(" • ")} | Flovex`
-      : `${baseTitle} | Flovex`;
+      ? `${baseTitle} – ${contextParts.join(" • ")}`
+      : baseTitle;
 
     const baseDescription =
       video.description ||
@@ -97,7 +105,7 @@ export async function generateMetadata({ params }) {
           ? description.substring(0, 157) + "..."
           : description,
       openGraph: {
-        title: seoTitle,
+        title: `${seoTitle} | Flovex`,
         description: description,
         url: videoUrl,
         siteName: "Flovex",
@@ -113,7 +121,7 @@ export async function generateMetadata({ params }) {
       },
       twitter: {
         card: "summary_large_image",
-        title: seoTitle,
+        title: `${seoTitle} | Flovex`,
         description:
           description.length > 200
             ? description.substring(0, 197) + "..."
@@ -127,7 +135,7 @@ export async function generateMetadata({ params }) {
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Video | Flovex",
+      title: "Video",
       description: "Watch free HD adult videos on Flovex.",
     };
   }
@@ -155,7 +163,7 @@ async function fetchEpornerRecommendationsFromAffiliate(video, page = 1) {
 
   searchUrl.searchParams.set("order", "mostviewed");
   searchUrl.searchParams.set("page", String(page));
-  searchUrl.searchParams.set("per_page", "20");
+  searchUrl.searchParams.set("per_page", String(RECOMMENDATIONS_PAGE_SIZE));
   searchUrl.searchParams.set("thumbsize", "big");
 
   const res = await fetch(searchUrl.toString(), { cache: "no-store" });
@@ -225,8 +233,32 @@ export default async function AffiliateWatchPage({ params }) {
   const channelTags = buildTagLinks(video.channels, video.channel_ids, "/affiliate/channel");
   const epornerRecommended = await fetchEpornerRecommendationsFromAffiliate(video);
 
+  const canonicalUrl = absoluteUrl(`/affiliate/watch/${video.id}`);
+  const videoTitle = video.title || "Untitled";
+
   return (
     <div className={styles.main}>
+      <script
+        {...jsonLdProps(
+          videoObjectJsonLd({
+            title: videoTitle,
+            description: video.description,
+            thumbnailUrl: video.thumbnail_url || "",
+            uploadDate: video.published_at || video.created_at,
+            duration: video.duration,
+            url: canonicalUrl,
+            embedUrl: video.iframe_url || video.video_url || "",
+          })
+        )}
+      />
+      <script
+        {...jsonLdProps(
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: videoTitle, path: `/affiliate/watch/${video.id}` },
+          ])
+        )}
+      />
       <section className={styles.playerSection}>
         <FlovexBarAd snippetPath="/flovex.net_bar_above_player.txt" />
         <AffiliateVideoPlayer video={video} />

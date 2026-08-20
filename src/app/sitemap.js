@@ -91,16 +91,56 @@ async function fetchAffiliateVideosForSitemap(limit = 500) {
   }
 }
 
+
+// Taxonomy pages (categories, pornstars, channels) are real landing pages and
+// often the strongest long-tail entry points, so they belong in the sitemap.
+// A sitemap may carry 50,000 URLs; this ceiling only exists to keep one
+// runaway table from crowding out the video entries.
+async function fetchTaxonomyForSitemap(endpoint, routePrefix, limit = 10000) {
+  const apiRoot = getApiRoot();
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+
+  try {
+    const res = await fetch(`${apiRoot}/affiliate/${endpoint}`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    if (!data?.success || !Array.isArray(data.data)) return [];
+
+    return data.data
+      .filter((entry) => entry?.id !== undefined && entry?.id !== null)
+      .slice(0, limit)
+      .map((entry) => ({
+        url: `${siteUrl}${routePrefix}/${entry.id}`,
+        lastModified: new Date().toISOString(),
+      }));
+  } catch (error) {
+    console.error(`Error fetching ${endpoint} for sitemap:`, error);
+    return [];
+  }
+}
+
 export default async function sitemap() {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const now = new Date().toISOString();
 
-  // Fetch videos from both sources in parallel
-  const [epornerVideos, affiliateVideos] = await Promise.all([
+  // Fetch videos and taxonomy pages from both sources in parallel
+  const [
+    epornerVideos,
+    affiliateVideos,
+    categories,
+    pornstars,
+    channels,
+  ] = await Promise.all([
     fetchEpornerVideosForSitemap(500),
     fetchAffiliateVideosForSitemap(500),
+    fetchTaxonomyForSitemap("categories", "/affiliate/category"),
+    fetchTaxonomyForSitemap("pornstars", "/affiliate/pornstar"),
+    fetchTaxonomyForSitemap("channels", "/affiliate/channel"),
   ]);
 
   // Static pages
@@ -110,6 +150,24 @@ export default async function sitemap() {
       lastModified: now,
       changeFrequency: "daily",
       priority: 1,
+    },
+    {
+      url: `${siteUrl}/affiliate/categories`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/affiliate/pornstars`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/affiliate/channels`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
     },
     {
       url: `${siteUrl}/privacy-policy`,
@@ -147,6 +205,20 @@ export default async function sitemap() {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...epornerSitemapEntries, ...affiliateSitemapEntries];
+  const taxonomyEntries = [...categories, ...pornstars, ...channels].map(
+    (entry) => ({
+      url: entry.url,
+      lastModified: entry.lastModified,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    })
+  );
+
+  return [
+    ...staticPages,
+    ...taxonomyEntries,
+    ...epornerSitemapEntries,
+    ...affiliateSitemapEntries,
+  ];
 }
 

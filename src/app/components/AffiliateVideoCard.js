@@ -1,15 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import styles from "../page.module.css";
+import { formatDuration } from "./formatters";
 
 export default function AffiliateVideoCard({ video }) {
-  const router = useRouter();
   const videoRef = useRef(null);
   const [isHovering, setIsHovering] = useState(false);
-  
+
   const {
     id,
     title,
@@ -25,14 +25,14 @@ export default function AffiliateVideoCard({ video }) {
   const videoTitle = title || "";
   const videoDuration = duration || 0;
 
-  const watchParam = String(id ?? "");
-
-  const minutes = videoDuration ? Math.floor(videoDuration / 60) : null;
-  const seconds = videoDuration ? videoDuration % 60 : null;
-
-  const handleCardClick = () => {
-    router.push(`/affiliate/watch/${id}`);
-  };
+  // Two supporting lines at most, so cards stay the same height across the grid
+  const castLine = pornstars && pornstars.length > 0 ? pornstars.join(", ") : "";
+  const contextLine = [
+    channels && channels.length > 0 ? channels.join(", ") : "",
+    categories && categories.length > 0 ? categories.join(", ") : "",
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
   const handleMouseEnter = () => {
     setIsHovering(true);
@@ -55,11 +55,11 @@ export default function AffiliateVideoCard({ video }) {
     }
   };
 
-  const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225'%3E%3Crect fill='%2315131c' width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23b2adb9' font-family='system-ui' font-size='14'%3ENo thumbnail%3C/text%3E%3C/svg%3E";
+  const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225'%3E%3Crect fill='%23212121' width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23aaaaaa' font-family='system-ui' font-size='14'%3ENo thumbnail%3C/text%3E%3C/svg%3E";
 
   return (
-    <div 
-      onClick={handleCardClick} 
+    <Link
+      href={`/affiliate/watch/${id}`}
       className={styles.card}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -83,7 +83,7 @@ export default function AffiliateVideoCard({ video }) {
             src={videoThumbnail || placeholderImage}
             alt={videoTitle}
             fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className={styles.thumbnail}
             onError={(e) => {
               if (!e.target.src.includes("data:image/svg+xml")) {
@@ -94,9 +94,9 @@ export default function AffiliateVideoCard({ video }) {
             loading="lazy"
           />
         )}
-        {duration ? (
+        {videoDuration ? (
           <span className={styles.duration}>
-            {minutes}:{String(seconds).padStart(2, "0")}
+            {formatDuration(videoDuration)}
           </span>
         ) : null}
       </div>
@@ -104,22 +104,9 @@ export default function AffiliateVideoCard({ video }) {
         <h3 className={`${styles.cardTitle} ${styles.affiliateTitle}`}>
           {videoTitle || "Untitled"}
         </h3>
-        {pornstars && pornstars.length > 0 && (
-          <p className={styles.cardMeta}>
-            {pornstars.join(", ")}
-          </p>
-        )}
-        {channels && channels.length > 0 && (
-          <p className={styles.cardChannel}>
-            Channels: {channels.join(", ")}
-          </p>
-        )}
-        {categories && categories.length > 0 && (
-          <p className={styles.cardDate}>
-            {categories.join(", ")}
-          </p>
-        )}
+        {castLine && <p className={styles.cardMeta}>{castLine}</p>}
+        {contextLine && <p className={styles.cardChannel}>{contextLine}</p>}
       </div>
-    </div>
+    </Link>
   );
 }

@@ -1,9 +1,12 @@
 import styles from "./disclaimer.module.css";
+import { buildMetadata } from "../lib/seo";
 
-export const metadata = {
-  title: "Disclaimer - Flovex",
-  description: "Disclaimer for Flovex adult video platform",
-};
+export const metadata = buildMetadata({
+  title: "Disclaimer",
+  description:
+    "Legal disclaimer for Flovex, covering adult content warnings, third-party material, and limitation of liability.",
+  path: "/disclaimer",
+});
 
 export default function Disclaimer() {
   return (

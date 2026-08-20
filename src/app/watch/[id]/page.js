@@ -1,11 +1,23 @@
-import { Metadata } from "next";
+import Link from "next/link";
 import styles from "./watch.module.css";
+import {
+  formatDuration,
+  formatExactCount,
+  formatRelativeDate,
+} from "../../components/formatters";
 import RecommendationsSection from "./RecommendationsSection";
 import AffiliateRecommendationsByQuery from "../../components/AffiliateRecommendationsByQuery";
 import VideoPlayerWithTracking from "../../components/VideoPlayerWithTracking";
 import FlovexBarAd from "../../components/FlovexBarAd";
 import AdProviderBanner from "../../components/AdProviderBanner";
 import { shouldShowAd } from "../../config/ads";
+import { RECOMMENDATIONS_PAGE_SIZE } from "../../config/feed";
+import {
+  absoluteUrl,
+  jsonLdProps,
+  videoObjectJsonLd,
+  breadcrumbJsonLd,
+} from "../../lib/seo";
 
 const getApiRoot = () => {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -143,7 +155,7 @@ async function fetchRecommendedVideos(currentVideo, page = 1) {
   
   searchUrl.searchParams.set("order", "mostviewed");
   searchUrl.searchParams.set("page", String(page));
-  searchUrl.searchParams.set("per_page", "20");
+  searchUrl.searchParams.set("per_page", String(RECOMMENDATIONS_PAGE_SIZE));
   searchUrl.searchParams.set("thumbsize", "big");
 
   const res = await fetch(searchUrl.toString(), { cache: "no-store" });
@@ -229,7 +241,7 @@ async function fetchAffiliateRecommendationsByQuery(currentVideo, page = 1) {
     searchUrl.searchParams.set("query", recQuery);
   }
   searchUrl.searchParams.set("page", String(page));
-  searchUrl.searchParams.set("per_page", "20");
+  searchUrl.searchParams.set("per_page", String(RECOMMENDATIONS_PAGE_SIZE));
 
   const res = await fetch(searchUrl.toString(), { cache: "no-store" });
   if (!res.ok) {
@@ -258,7 +270,7 @@ export async function generateMetadata({ params }) {
     
     if (!video) {
       return {
-        title: "Video Not Found | Flovex",
+        title: "Video Not Found",
         description: "The requested video could not be found.",
       };
     }
@@ -286,7 +298,8 @@ export async function generateMetadata({ params }) {
       : views || "0 views";
 
     return {
-      title: `${title} | Flovex`,
+      // Bare: the root title.template appends "| Flovex".
+      title: title,
       description: description.length > 160 ? description.substring(0, 157) + "..." : description,
       keywords: video.keywords || video.tags || video.category || undefined,
       openGraph: {
@@ -331,7 +344,7 @@ export async function generateMetadata({ params }) {
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Video | Flovex",
+      title: "Video",
       description: "Watch free HD adult videos on Flovex.",
     };
   }
@@ -354,8 +367,55 @@ export default async function WatchPage({ params }) {
     fetchAffiliateRecommendationsByQuery(video),
   ]);
 
+  const views = Number(video.views ?? video.view ?? 0) || 0;
+  const publishedAt = formatRelativeDate(video.added || video.created_at);
+  const durationLabel = formatDuration(video.duration || video.length_sec);
+  const description = video.description || video.desc || "";
+
+  // Keywords double as browse chips, like the topic links under a YouTube video
+  const keywordChips = String(
+    video.keywords || video.raw?.keywords || video.tags || video.category || ""
+  )
+    .split(",")
+    .map((keyword) => keyword.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+
+  const canonicalUrl = absoluteUrl(`/watch/${id}`);
+  const videoTitle = video.title || video.title_clean || "Untitled";
+
   return (
     <div className={styles.main}>
+      {/* VideoObject markup — what makes the page eligible for video rich
+          results and the Videos tab. */}
+      <script
+        {...jsonLdProps(
+          videoObjectJsonLd({
+            title: videoTitle,
+            description,
+            thumbnailUrl:
+              video.thumbnail_url ||
+              video.thumbnail ||
+              video.thumb ||
+              video.default_thumb ||
+              video.raw?.thumb ||
+              "",
+            uploadDate: video.added || video.created_at,
+            duration: video.duration || video.length_sec,
+            url: canonicalUrl,
+            embedUrl: video.embed_url || video.video_url || "",
+            views,
+          })
+        )}
+      />
+      <script
+        {...jsonLdProps(
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: videoTitle, path: `/watch/${id}` },
+          ])
+        )}
+      />
       <section className={styles.playerSection}>
           <FlovexBarAd snippetPath="/flovex.net_bar_above_player.txt" />
           <VideoPlayerWithTracking
@@ -367,17 +427,30 @@ export default async function WatchPage({ params }) {
           <FlovexBarAd snippetPath="/flovex.net_bar_under_player.txt" />
           <h1 className={styles.title}>{video.title || video.title_clean || "Untitled"}</h1>
           <div className={styles.meta}>
-            {video.views || video.view ? (
-              <span>{typeof (video.views || video.view) === "number"
-                ? `${(video.views || video.view).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} views`
-                : "No views yet"}</span>
-            ) : (
-              <span>No views yet</span>
-            )}
+            <span>
+              {views > 0 ? `${formatExactCount(views)} views` : "No views yet"}
+            </span>
+            {publishedAt && <span>{publishedAt}</span>}
+            {durationLabel && <span>{durationLabel}</span>}
           </div>
-          {video.description || video.desc ? (
-            <p className={styles.description}>{video.description || video.desc}</p>
+          {description ? (
+            <div className={styles.infoPanel}>
+              <p className={styles.description}>{description}</p>
+            </div>
           ) : null}
+          {keywordChips.length > 0 && (
+            <div className={styles.tagsRow}>
+              {keywordChips.map((keyword) => (
+                <Link
+                  key={keyword}
+                  href={`/?q=${encodeURIComponent(keyword)}`}
+                  className={`${styles.tag} ${styles.tagCategory}`}
+                >
+                  {keyword}
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Top Banner Ad - Shown after video player and info */}

@@ -1,9 +1,12 @@
 import styles from "../privacy-policy/privacy-policy.module.css";
+import { buildMetadata } from "../lib/seo";
 
-export const metadata = {
-  title: "Terms and Conditions - Flovex",
-  description: "Terms and Conditions for Flovex adult video platform",
-};
+export const metadata = buildMetadata({
+  title: "Terms and Conditions",
+  description:
+    "The terms governing your use of Flovex, including eligibility, acceptable use, content rules, and liability.",
+  path: "/terms-and-conditions",
+});
 
 export default function TermsAndConditions() {
   return (

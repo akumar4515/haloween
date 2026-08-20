@@ -1,3 +1,4 @@
+import { SITE_URL } from "../lib/seo";
 import { Suspense } from "react";
 import Link from "next/link";
 
@@ -250,6 +251,9 @@ export default async function AMPHome({ searchParams }) {
         <script async src="https://cdn.ampproject.org/v0.js"></script>
         <script async custom-element="amp-img" src="https://cdn.ampproject.org/v0/amp-img-0.1.js"></script>
         <script async custom-element="amp-selector" src="https://cdn.ampproject.org/v0/amp-selector-0.1.js"></script>
+        {/* Required by the AMP spec and the reason the AMP copy does not
+            compete with the main page for the same query. */}
+        <link rel="canonical" href={`${SITE_URL}/`} />
         <title>Flovex - Free HD Adult Videos | AMP</title>
         <meta name="description" content="Watch free HD adult videos on Flovex. High-quality porn videos optimized for mobile." />
         <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />

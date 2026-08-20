@@ -1,7 +1,18 @@
 import Link from "next/link";
 import styles from "../../page.module.css";
+import AdProviderBanner from "../../components/AdProviderBanner";
+import { shouldShowAd } from "../../config/ads";
+import { buildMetadata } from "../../lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = buildMetadata({
+  title: "Categories",
+  description:
+    "Browse free HD adult videos by category on Flovex. Explore hundreds of porn categories with fast streaming and daily updates.",
+  path: "/affiliate/categories",
+  keywords: ["porn categories", "adult video categories", "browse porn by category"],
+});
 
 const getApiRoot = () => {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -59,6 +70,22 @@ export default async function CategoriesPage() {
           <p className={styles.listSubtitle}>Browse videos by category</p>
         </div>
       </div>
+
+
+      {shouldShowAd('HOME_CONTENT_BANNER_1') && (
+        <div className={styles.contentAdContainer}>
+          <AdProviderBanner
+            zoneId={
+              process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_ZONE_ID ||
+              "5846062"
+            }
+            adClassName={
+              process.env.NEXT_PUBLIC_ADPROVIDER_CONTENT_BANNER_1_CLASS ||
+              "eas6a97888e2"
+            }
+          />
+        </div>
+      )}
 
       {categories.length === 0 && epornerCategories.length === 0 ? (
         <div className={styles.emptyState}>

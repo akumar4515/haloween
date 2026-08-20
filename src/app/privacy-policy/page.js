@@ -1,9 +1,12 @@
 import styles from "./privacy-policy.module.css";
+import { buildMetadata } from "../lib/seo";
 
-export const metadata = {
-  title: "Privacy Policy - Flovex",
-  description: "Privacy Policy for Flovex adult video platform",
-};
+export const metadata = buildMetadata({
+  title: "Privacy Policy",
+  description:
+    "How Flovex collects, uses, and protects your data, including cookies, advertising partners, and your privacy choices.",
+  path: "/privacy-policy",
+});
 
 export default function PrivacyPolicy() {
   return (

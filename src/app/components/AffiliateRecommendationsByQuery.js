@@ -4,7 +4,9 @@ import { useState } from "react";
 import AffiliateVideoCard from "./AffiliateVideoCard";
 import styles from "../watch/[id]/watch.module.css";
 
-const PAGE_SIZE = 20;
+import { RECOMMENDATIONS_PAGE_SIZE } from "../config/feed";
+
+const PAGE_SIZE = RECOMMENDATIONS_PAGE_SIZE;
 
 const getApiRoot = () => {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";

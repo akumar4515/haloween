@@ -1,15 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import styles from "../page.module.css";
+import { formatCount, formatDuration, formatRelativeDate } from "./formatters";
 
 export default function VideoCard({ video }) {
-  const router = useRouter();
   const videoRef = useRef(null);
   const [isHovering, setIsHovering] = useState(false);
-  
+
   // Handle different field names from API
   const {
     id,
@@ -30,7 +30,7 @@ export default function VideoCard({ video }) {
 
   // Map API fields to expected fields
   // Backend now formats videos to have video_url, embed_url, and thumbnail_url
-  const videoThumbnail = thumbnail_url || thumbnail || thumb || default_thumb || 
+  const videoThumbnail = thumbnail_url || thumbnail || thumb || default_thumb ||
                          (video.raw && (video.raw.thumb || video.raw.default_thumb || video.raw.thumbnail)) || "";
   const videoTitle = title || "";
   const videoDuration = duration || 0;
@@ -42,28 +42,28 @@ export default function VideoCard({ video }) {
   // Eporner typically doesn't provide direct video file URLs, so we'll use thumbnail for preview
   const getVideoPreviewUrl = () => {
     // Check for direct video file URLs first
-    const directUrl = video_url || 
+    const directUrl = video_url ||
                       (video.raw && (video.raw.mp4 || video.raw.webm || video.raw.url || video.raw.src)) || "";
-    
+
     if (directUrl) {
       const urlStr = String(directUrl);
-      
+
       // Check if it's a direct video file URL (mp4, webm, etc.)
       if (urlStr.match(/\.(mp4|webm|ogg|mov|m3u8)(\?|$)/i)) {
         return urlStr;
       }
-      
+
       // If it's not an embed URL and starts with http, might be a direct video
       if (urlStr.startsWith("http") && !urlStr.includes("embed") && !urlStr.includes("<iframe")) {
         return urlStr;
       }
     }
-    
+
     // Eporner embed URLs won't work with <video> tag for preview
     // Return null to use thumbnail instead
     return null;
   };
-  
+
   const videoPreviewUrl = getVideoPreviewUrl();
 
   const watchParam = (() => {
@@ -73,34 +73,11 @@ export default function VideoCard({ video }) {
     return encodeURIComponent(idStr);
   })();
 
-  const minutes = videoDuration ? Math.floor(videoDuration / 60) : null;
-  const seconds = videoDuration ? videoDuration % 60 : null;
-
-  // Format date consistently to avoid hydration mismatches
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${month}/${day}/${year}`;
-    } catch {
-      return "";
-    }
-  };
-
-  // Format number consistently to avoid hydration mismatches
-  // Use manual formatting instead of toLocaleString to ensure server/client consistency
-  const formatNumber = (num) => {
-    if (typeof num !== "number" || num <= 0) return "0";
-    // Manual formatting to avoid locale differences between server and client
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
-
-  const handleCardClick = () => {
-    router.push(`/watch/${watchParam}`);
-  };
+  // "1.2M views • 3 days ago", the way a viewer scans a shelf
+  const metaParts = [
+    videoViews > 0 ? `${formatCount(videoViews)} views` : "No views yet",
+    formatRelativeDate(videoCreatedAt),
+  ].filter(Boolean);
 
   const handleMouseEnter = () => {
     setIsHovering(true);
@@ -126,11 +103,11 @@ export default function VideoCard({ video }) {
   };
 
   // Create a data URI placeholder for missing thumbnails
-  const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225'%3E%3Crect fill='%2315131c' width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23b2adb9' font-family='system-ui' font-size='14'%3ENo thumbnail%3C/text%3E%3C/svg%3E";
+  const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225'%3E%3Crect fill='%23212121' width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23aaaaaa' font-family='system-ui' font-size='14'%3ENo thumbnail%3C/text%3E%3C/svg%3E";
 
   return (
-    <div 
-      onClick={handleCardClick} 
+    <Link
+      href={`/watch/${watchParam}`}
       className={styles.card}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -156,7 +133,7 @@ export default function VideoCard({ video }) {
             src={videoThumbnail || placeholderImage}
             alt={videoTitle}
             fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className={styles.thumbnail}
             onError={(e) => {
               // Prevent infinite loop by checking if already using placeholder
@@ -173,9 +150,9 @@ export default function VideoCard({ video }) {
             loading="lazy"
         />
         )}
-        {duration ? (
+        {videoDuration ? (
           <span className={styles.duration}>
-            {minutes}:{String(seconds).padStart(2, "0")}
+            {formatDuration(videoDuration)}
           </span>
         ) : null}
       </div>
@@ -183,17 +160,8 @@ export default function VideoCard({ video }) {
         <h3 className={`${styles.cardTitle} ${styles.epornerTitle}`}>
           {videoTitle || "Untitled"}
         </h3>
-        <p className={styles.cardMeta}>
-          {typeof videoViews === "number" && videoViews > 0
-            ? `${formatNumber(videoViews)} views`
-            : "No views yet"}
-        </p>
-        {videoCreatedAt ? (
-          <p className={styles.cardDate}>
-            {formatDate(videoCreatedAt)}
-          </p>
-        ) : null}
+        <p className={styles.cardMeta}>{metaParts.join(" • ")}</p>
       </div>
-    </div>
+    </Link>
   );
 }

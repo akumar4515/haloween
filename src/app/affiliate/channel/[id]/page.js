@@ -5,6 +5,8 @@ import AffiliateVideoCard from "../../../components/AffiliateVideoCard";
 import VideoCard from "../../../components/VideoCard";
 import AdProviderBanner from "../../../components/AdProviderBanner";
 import { shouldShowAd } from "../../../config/ads";
+import { buildMetadata } from "../../../lib/seo";
+import { resolveTaxonomyName } from "../../../lib/taxonomy";
 
 const getApiRoot = () => {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -213,6 +215,30 @@ async function ChannelVideoGrid({ channelId, searchParams }) {
       )}
     </>
   );
+}
+
+
+export async function generateMetadata({ params, searchParams }) {
+  const { id } = await params;
+  const sp = await searchParams;
+
+  const name = await resolveTaxonomyName("channel", id);
+
+  const page = Number(sp?.page) || 1;
+  const label = name || "Channel";
+
+  // Self-referencing canonical: page 2 points at page 2, not back at page 1.
+  const path =
+    page > 1
+      ? `/affiliate/channel/${id}?page=${page}`
+      : `/affiliate/channel/${id}`;
+
+  return buildMetadata({
+    title: page > 1 ? `${label} Videos - Page ${page}` : `${label} Videos`,
+    description: `Watch free HD ${label} channel videos on Flovex. Stream the full ${label} collection with fast playback and daily updates.`,
+    path,
+    keywords: [`${label} porn`, `${label} videos`, "free HD porn", "channel videos"],
+  });
 }
 
 export default async function ChannelPage({ params, searchParams }) {
