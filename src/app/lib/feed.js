@@ -103,124 +103,132 @@ export async function fetchAffiliateVideos({ q, page = 1, perPage = 50 } = {}) {
   }
 }
 
+function normalizeDirectEpornerVideo(video) {
+  if (!video || !(video.id || video.video_id)) return null;
+
+  const id = String(video.id || video.video_id);
+  const thumb =
+    video.thumbnail_url ||
+    video.thumb ||
+    video.default_thumb?.src ||
+    video.default_thumb ||
+    video.thumbs?.[0]?.src ||
+    video.thumbnail ||
+    "";
+
+  const embed =
+    typeof video.embed_url === "string" && video.embed_url.includes("eporner.com")
+      ? video.embed_url
+      : typeof video.embed === "string" && video.embed.includes("eporner.com")
+        ? video.embed
+        : `https://www.eporner.com/embed/${encodeURIComponent(id)}/`;
+
+  return {
+    ...video,
+    id,
+    title: video.title || video.name || "Untitled",
+    duration: Number(video.duration || video.length_sec || video.length) || 0,
+    views: Number(video.views || video.view_count) || 0,
+    video_url: video.video_url || video.url || embed,
+    embed_url: embed,
+    thumbnail_url: typeof thumb === "string" ? thumb : thumb?.src || "",
+    raw: video.raw || video,
+    __source: "eporner",
+  };
+}
+
+async function fetchDirectEpornerVideos({ q, page, perPage }) {
+  const query = q && q !== "newest" && q !== "free" && q !== "premium" ? q : "all";
+  const url = new URL("https://www.eporner.com/api/v2/video/search/");
+  url.searchParams.set("query", query);
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("per_page", String(Math.min(100, perPage)));
+  url.searchParams.set("thumbsize", "big");
+  url.searchParams.set("order", q === "newest" ? "latest" : "most-popular");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("gay", "0");
+  url.searchParams.set("lq", "1");
+
+  const response = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) {
+    throw new Error(`Direct Eporner request failed: HTTP ${response.status}`);
+  }
+
+  const payload = await response.json();
+  return extractList(payload).map(normalizeDirectEpornerVideo).filter(Boolean);
+}
+
 export async function fetchVideos({ q, page = 1, perPage = 50 } = {}) {
   const baseUrl = getApiBaseUrl();
-
   q = normalizeQuery(q);
 
   try {
-    // Determine which endpoint to use
-    // If no query or query is "newest"/"free"/"premium", use the list endpoint
-    // Otherwise use search endpoint
     const hasSearchQuery = q && q !== "newest" && q !== "free" && q !== "premium";
     const endpoint = hasSearchQuery ? "videos/search" : "videos";
-    const searchUrl = new URL(`${baseUrl}/api/eporner/${endpoint}`, "http://localhost");
-    
-    // Map query parameters to eporner API
+    const searchUrl = new URL(`${baseUrl}/api/eporner/${endpoint}`);
     if (hasSearchQuery) {
-      searchUrl.searchParams.set("query", q);
-      // Set order for search endpoint
+      searchUrl.searchParams.set("query", String(q));
       searchUrl.searchParams.set("order", "mostviewed");
     }
-    // For list endpoint, don't set order parameter as it might not be supported
-    
-    // Set pagination
     searchUrl.searchParams.set("page", String(page));
     searchUrl.searchParams.set("per_page", String(perPage));
     searchUrl.searchParams.set("thumbsize", "big");
 
-    const res = await fetch(searchUrl.toString(), { cache: "no-store" });
-    
-    // Try to parse response even if status is not ok
-    let data = null;
-    const contentType = res.headers.get("content-type");
-    const isJson = contentType && contentType.includes("application/json");
-    
-    if (isJson) {
-      try {
-        const text = await res.text();
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error("Failed to parse JSON response:", parseError);
-        if (!res.ok) {
-          console.error(`API Error (${res.status}):`, await res.text().catch(() => 'Unable to read error'));
-          console.error(`Failed URL: ${searchUrl.toString()}`);
-        }
-        return [];
+    const response = await fetch(searchUrl.toString(), {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(12000),
+    });
+
+    if (response.ok && (response.headers.get("content-type") || "").includes("application/json")) {
+      const payload = await response.json();
+      const videos = extractList(payload).map((video) => ({
+        ...video,
+        __source: "eporner",
+      }));
+
+      if (videos.length > 0) {
+        const data = payload?.data ?? payload;
+        return {
+          videos,
+          pagination: {
+            page: Number(data?.page) || page,
+            perPage: Number(data?.per_page) || perPage,
+            totalPages: Number(data?.total_pages) || 1,
+            totalCount: Number(data?.total_count ?? data?.count) || null,
+          },
+        };
       }
-    } else {
-      const text = await res.text();
-      console.error("Non-JSON response:", text.substring(0, 200));
-      if (!res.ok) {
-        console.error(`API Error (${res.status}):`, text.substring(0, 200));
-        console.error(`Failed URL: ${searchUrl.toString()}`);
-      }
-      return [];
     }
-    
-    // Backend returns { success: true, data: ... }
-    // The backend now formats videos to have video_url and thumbnail_url
-    let videos = [];
-    let pagination = {
-      page,
-      perPage,
-      totalPages: 1,
-      totalCount: null,
-    };
-    
-    if (data && data.success && data.data) {
-      // Check if data.data is directly an array (from video/list or video/search)
-      if (Array.isArray(data.data)) {
-        videos = data.data;
-      } 
-      // Check if data.data has a videos property (when API fails, backend returns { videos: [] })
-      else if (data.data.videos && Array.isArray(data.data.videos)) {
-        videos = data.data.videos;
-        pagination.page = Number(data.data.page) || page;
-        pagination.perPage = Number(data.data.per_page) || perPage;
-        pagination.totalPages = Number(data.data.total_pages) || 1;
-        pagination.totalCount = Number(data.data.total_count) || Number(data.data.count) || null;
-      }
-      // Check if data.data has nested data
-      else if (data.data.data && Array.isArray(data.data.data)) {
-        videos = data.data.data;
-      }
-      // If data.data is a single object, wrap it in an array
-      else if (data.data && typeof data.data === 'object' && data.data.id) {
-        videos = [data.data];
-      }
-    } else if (data && data.data && Array.isArray(data.data)) {
-      // Fallback: if no success field but data exists
-      videos = data.data;
-    } else if (data && Array.isArray(data)) {
-      // Fallback: if response is directly an array
-      videos = data;
-    } else if (!res.ok) {
-      // If response was not ok and we couldn't parse videos, return empty
-      console.error(`API Error (${res.status}):`, data);
-      console.error(`Failed URL: ${searchUrl.toString()}`);
-      return [];
-    }
-    
-    // Log first video for debugging (remove in production)
-    if (videos.length > 0 && process.env.NODE_ENV === 'development') {
-      console.log('Sample video data:', {
-        id: videos[0].id,
-        title: videos[0].title,
-        video_url: videos[0].video_url,
-        embed_url: videos[0].embed_url,
-        thumbnail_url: videos[0].thumbnail_url,
-        hasRaw: !!videos[0].raw
-      });
-    }
-    
-    return { videos, pagination };
   } catch (error) {
-    console.error("Error fetching videos:", error);
-    return { videos: [], pagination: { page, perPage, totalPages: 1, totalCount: null } };
+    console.warn("Halloween backend Eporner feed failed; trying direct Eporner API:", error?.message || error);
+  }
+
+  // Match the working Maal implementation: if the backend is unavailable or
+  // returns an empty list, fall back to Eporner's JSON API from the server.
+  try {
+    const videos = await fetchDirectEpornerVideos({ q, page, perPage });
+    return {
+      videos,
+      pagination: {
+        page,
+        perPage,
+        totalPages: videos.length >= perPage ? page + 1 : page,
+        totalCount: null,
+      },
+    };
+  } catch (error) {
+    console.error("Direct Eporner fallback failed:", error?.message || error);
+    return {
+      videos: [],
+      pagination: { page, perPage, totalPages: 1, totalCount: null },
+    };
   }
 }
-
 
 // Affiliate and eporner ids are both plain numbers and do overlap, so identity
 // has to carry the source.
