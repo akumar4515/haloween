@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 const getApiRoot = () => {
-  const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const raw = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "https://halloween-backend-cria.onrender.com";
   const normalized = raw.replace(/\/+$/, "");
   return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
 };
@@ -13,7 +13,7 @@ async function fetchEpornerVideosForSitemap(limit = 500) {
 
   try {
     // Fetch recent/popular videos for sitemap
-    const searchUrl = new URL(`${apiRoot}/eporner/videos`, "http://localhost");
+    const searchUrl = new URL(`${apiRoot}/eporner/videos`);
     searchUrl.searchParams.set("page", "1");
     searchUrl.searchParams.set("per_page", String(limit));
     searchUrl.searchParams.set("thumbsize", "big");
@@ -60,7 +60,7 @@ async function fetchAffiliateVideosForSitemap(limit = 500) {
 
   try {
     // Fetch affiliate videos for sitemap
-    const searchUrl = new URL(`${apiRoot}/affiliate/videos`, "http://localhost");
+    const searchUrl = new URL(`${apiRoot}/affiliate/videos`);
     searchUrl.searchParams.set("page", "1");
     searchUrl.searchParams.set("per_page", String(limit));
 
@@ -136,8 +136,8 @@ export default async function sitemap() {
     pornstars,
     channels,
   ] = await Promise.all([
-    fetchEpornerVideosForSitemap(500),
-    fetchAffiliateVideosForSitemap(500),
+    fetchEpornerVideosForSitemap(5000),
+    fetchAffiliateVideosForSitemap(5000),
     fetchTaxonomyForSitemap("categories", "/affiliate/category"),
     fetchTaxonomyForSitemap("pornstars", "/affiliate/pornstar"),
     fetchTaxonomyForSitemap("channels", "/affiliate/channel"),
