@@ -17,6 +17,15 @@ import { FEED_PAGE_SIZE } from "../config/feed";
 
 export { FEED_PAGE_SIZE } from "../config/feed";
 
+function getApiBaseUrl() {
+  const configured =
+    process.env.API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    "http://localhost:5000";
+  const normalized = configured.replace(/\\/+$/, "");
+  return normalized.endsWith("/api") ? normalized.slice(0, -4) : normalized;
+}
+
 const NEWEST_KEYS = ["new", "newest", "latest", "recent"];
 
 // Quick filters across the top of the feed, the way YouTube surfaces topics.
@@ -40,8 +49,7 @@ export const normalizeQuery = (value) => {
 
 
 export async function fetchAffiliateVideos({ q, page = 1, perPage = 50 } = {}) {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const baseUrl = getApiBaseUrl();
 
   q = normalizeQuery(q);
   const hasSearchQuery = q && q !== "newest" && q !== "free" && q !== "premium";
@@ -96,8 +104,7 @@ export async function fetchAffiliateVideos({ q, page = 1, perPage = 50 } = {}) {
 }
 
 export async function fetchVideos({ q, page = 1, perPage = 50 } = {}) {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const baseUrl = getApiBaseUrl();
 
   q = normalizeQuery(q);
 
