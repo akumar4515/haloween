@@ -1,21 +1,21 @@
-// ExoClick Ad Configuration
-// Replace these zone IDs with your actual ExoClick zone IDs
+// Legacy ExoClick zone configuration.
+// Leave unset unless real ExoClick zone IDs are configured in the deployment environment.
 
 export const EXOCLICK_ZONES = {
   // Banner Ads
-  TOP_BANNER: process.env.NEXT_PUBLIC_EXOCLICK_TOP_BANNER || '1234567', // 728x90
-  SIDEBAR_BANNER: process.env.NEXT_PUBLIC_EXOCLICK_SIDEBAR_BANNER || '1234568', // 160x600
-  CONTENT_BANNER_1: process.env.NEXT_PUBLIC_EXOCLICK_CONTENT_BANNER_1 || '1234569', // 300x250
-  CONTENT_BANNER_2: process.env.NEXT_PUBLIC_EXOCLICK_CONTENT_BANNER_2 || '1234570', // 300x250
-  MOBILE_BANNER: process.env.NEXT_PUBLIC_EXOCLICK_MOBILE_BANNER || '1234571', // 320x50
+  TOP_BANNER: process.env.NEXT_PUBLIC_EXOCLICK_TOP_BANNER || '', // 728x90
+  SIDEBAR_BANNER: process.env.NEXT_PUBLIC_EXOCLICK_SIDEBAR_BANNER || '', // 160x600
+  CONTENT_BANNER_1: process.env.NEXT_PUBLIC_EXOCLICK_CONTENT_BANNER_1 || '', // 300x250
+  CONTENT_BANNER_2: process.env.NEXT_PUBLIC_EXOCLICK_CONTENT_BANNER_2 || '', // 300x250
+  MOBILE_BANNER: process.env.NEXT_PUBLIC_EXOCLICK_MOBILE_BANNER || '', // 320x50
 
   // Video Ads
-  PREROLL_VIDEO: process.env.NEXT_PUBLIC_EXOCLICK_PREROLL_VIDEO || '1234572',
-  OVERLAY_VIDEO: process.env.NEXT_PUBLIC_EXOCLICK_OVERLAY_VIDEO || '1234573',
+  PREROLL_VIDEO: process.env.NEXT_PUBLIC_EXOCLICK_PREROLL_VIDEO || '',
+  OVERLAY_VIDEO: process.env.NEXT_PUBLIC_EXOCLICK_OVERLAY_VIDEO || '',
 
   // Popunder/Click Ads
-  POPUNDER: process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER || '1234574',
-  NATIVE_AD: process.env.NEXT_PUBLIC_EXOCLICK_NATIVE_AD || '1234575',
+  POPUNDER: process.env.NEXT_PUBLIC_EXOCLICK_POPUNDER || '',
+  NATIVE_AD: process.env.NEXT_PUBLIC_EXOCLICK_NATIVE_AD || '',
 };
 
 // Ad placement configuration
