@@ -22,7 +22,7 @@ function getApiBaseUrl() {
     process.env.API_BASE_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
     "https://halloween-backend-cria.onrender.com";
-  const normalized = configured.replace(/\\/+$/, "");
+  const normalized = configured.replace(/\/+$/, "");
   return normalized.endsWith("/api") ? normalized.slice(0, -4) : normalized;
 }
 
