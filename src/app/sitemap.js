@@ -7,46 +7,34 @@ const getApiRoot = () => {
 };
 
 // Helper function to fetch videos from eporner API for sitemap
-async function fetchEpornerVideosForSitemap(limit = 500) {
+async function fetchEpornerVideosForSitemap(limit = 50000) {
   const apiRoot = getApiRoot();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   try {
-    // Fetch recent/popular videos for sitemap
-    const searchUrl = new URL(`${apiRoot}/eporner/videos`);
-    searchUrl.searchParams.set("page", "1");
-    searchUrl.searchParams.set("per_page", String(limit));
-    searchUrl.searchParams.set("thumbsize", "big");
-
-    const res = await fetch(searchUrl.toString(), { 
-      cache: "no-store",
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
-
-    if (!res.ok) {
-      console.error('Failed to fetch Eporner videos for sitemap:', res.status);
-      return [];
+    const videos = [];
+    const seen = new Set();
+    const pageSize = 100;
+    for (let page = 1; videos.length < limit; page += 1) {
+      const searchUrl = new URL(`${apiRoot}/eporner/videos`);
+      searchUrl.searchParams.set("page", String(page));
+      searchUrl.searchParams.set("per_page", String(pageSize));
+      searchUrl.searchParams.set("thumbsize", "big");
+      const res = await fetch(searchUrl.toString(), { next: { revalidate: 3600 } });
+      if (!res.ok) break;
+      const payload = await res.json();
+      const data = payload?.data ?? payload;
+      const batch = Array.isArray(data) ? data : Array.isArray(data?.videos) ? data.videos : Array.isArray(data?.data) ? data.data : [];
+      if (!batch.length) break;
+      for (const video of batch) {
+        if (!video?.id || seen.has(String(video.id))) continue;
+        seen.add(String(video.id));
+        videos.push({ id: video.id, url: `${siteUrl}/watch/${encodeURIComponent(String(video.id))}`, lastModified: video.added || video.created_at || new Date().toISOString() });
+        if (videos.length >= limit) break;
+      }
+      if (batch.length < pageSize) break;
     }
-
-    const data = await res.json();
-
-    if (!data.success || !data.data) {
-      return [];
-    }
-
-    // Extract videos array
-    let videos = [];
-    if (Array.isArray(data.data)) {
-      videos = data.data;
-    } else if (data.data.videos && Array.isArray(data.data.videos)) {
-      videos = data.data.videos;
-    }
-
-    return videos.map(video => ({
-      id: video.id,
-      url: `${siteUrl}/watch/${video.id}`,
-      lastModified: video.added || video.created_at || new Date().toISOString(),
-    }));
+    return videos;
   } catch (error) {
     console.error('Error fetching Eporner videos for sitemap:', error);
     return [];
@@ -54,37 +42,33 @@ async function fetchEpornerVideosForSitemap(limit = 500) {
 }
 
 // Helper function to fetch affiliate videos for sitemap
-async function fetchAffiliateVideosForSitemap(limit = 500) {
+async function fetchAffiliateVideosForSitemap(limit = 50000) {
   const apiRoot = getApiRoot();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   try {
-    // Fetch affiliate videos for sitemap
-    const searchUrl = new URL(`${apiRoot}/affiliate/videos`);
-    searchUrl.searchParams.set("page", "1");
-    searchUrl.searchParams.set("per_page", String(limit));
-
-    const res = await fetch(searchUrl.toString(), { 
-      cache: "no-store",
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
-
-    if (!res.ok) {
-      console.error('Failed to fetch affiliate videos for sitemap:', res.status);
-      return [];
+    const videos = [];
+    const seen = new Set();
+    const pageSize = 100;
+    for (let page = 1; videos.length < limit; page += 1) {
+      const searchUrl = new URL(`${apiRoot}/affiliate/videos`);
+      searchUrl.searchParams.set("page", String(page));
+      searchUrl.searchParams.set("per_page", String(pageSize));
+      const res = await fetch(searchUrl.toString(), { next: { revalidate: 3600 } });
+      if (!res.ok) break;
+      const payload = await res.json();
+      const data = payload?.data ?? payload;
+      const batch = Array.isArray(data) ? data : Array.isArray(data?.videos) ? data.videos : Array.isArray(data?.data) ? data.data : [];
+      if (!batch.length) break;
+      for (const video of batch) {
+        if (!video?.id || seen.has(String(video.id))) continue;
+        seen.add(String(video.id));
+        videos.push({ id: video.id, url: `${siteUrl}/affiliate/watch/${encodeURIComponent(String(video.id))}`, lastModified: video.published_at || video.created_at || new Date().toISOString() });
+        if (videos.length >= limit) break;
+      }
+      if (batch.length < pageSize) break;
     }
-
-    const data = await res.json();
-
-    if (!data.success || !data.data || !Array.isArray(data.data)) {
-      return [];
-    }
-
-    return data.data.map(video => ({
-      id: video.id,
-      url: `${siteUrl}/affiliate/watch/${video.id}`,
-      lastModified: video.published_at || video.created_at || new Date().toISOString(),
-    }));
+    return videos;
   } catch (error) {
     console.error('Error fetching affiliate videos for sitemap:', error);
     return [];
