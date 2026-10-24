@@ -65,57 +65,92 @@ function getEmbedUrl(url) {
 
 async function fetchVideo(id) {
   const apiRoot = getApiRoot();
+  const backendUrl = new URL(`${apiRoot}/eporner/videos/${encodeURIComponent(id)}`);
+  backendUrl.searchParams.set("thumbsize", "big");
 
-  // Use eporner API to fetch video by ID
-  const url = new URL(`${apiRoot}/eporner/videos/${id}`);
-  url.searchParams.set("thumbsize", "big");
-  
-  const res = await fetch(url.toString(), { cache: "no-store" });
-  if (!res.ok) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(`Failed to fetch video (${res.status}):`, url.toString());
-    }
-    return null;
-  }
-  
-  const contentType = res.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) {
-    if (process.env.NODE_ENV === "development") {
-      const text = await res.text();
-      console.error("Server returned non-JSON:", text.substring(0, 200));
-    }
-    return null;
-  }
-  
-  const data = await res.json();
-  
-  // Backend returns { success: true, data: ... }
-  // The backend now formats the video to have video_url and thumbnail_url
-  if (data.success && data.data) {
-    // Check if data.data is the video object directly (formatted by backend)
-    if (data.data.id || data.data.title) {
-      // Log for debugging (remove in production)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Video data:', {
-          id: data.data.id,
-          title: data.data.title,
-          video_url: data.data.video_url,
-          thumbnail_url: data.data.thumbnail_url,
-          hasRaw: !!data.data.raw
-        });
+  try {
+    const res = await fetch(backendUrl.toString(), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000),
+      headers: { Accept: "application/json" },
+    });
+
+    if (res.ok && (res.headers.get("content-type") || "").includes("application/json")) {
+      const payload = await res.json();
+      const raw = payload?.data?.video || payload?.data || payload?.video || payload;
+      if (payload?.success !== false && raw && (raw.id || raw.title)) {
+        return {
+          ...raw,
+          id: String(raw.id || id),
+          embed_url: raw.embed_url || raw.embed || `https://www.eporner.com/embed/${encodeURIComponent(id)}/`,
+          video_url: raw.video_url || raw.embed_url || raw.embed || `https://www.eporner.com/embed/${encodeURIComponent(id)}/`,
+          thumbnail_url:
+            raw.thumbnail_url ||
+            raw.thumb ||
+            raw.default_thumb?.src ||
+            raw.default_thumb ||
+            raw.thumbs?.[0]?.src ||
+            "",
+          raw: raw.raw || raw,
+        };
       }
-      return data.data;
     }
-    // Check if data.data has nested video
-    else if (data.data.video) {
-      return data.data.video;
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Backend video lookup failed; trying direct Eporner API:", error?.message || error);
     }
-  } else if (data.data) {
-    // Fallback: if no success field but data exists
-    return data.data;
   }
-  
-  return data.video || data || null;
+
+  // Match Maal's resilient watch-page flow: query Eporner directly if the
+  // backend is down or cannot return the requested video.
+  try {
+    const directUrl = new URL("https://www.eporner.com/api/v2/video/id/");
+    directUrl.searchParams.set("id", String(id));
+    directUrl.searchParams.set("format", "json");
+    directUrl.searchParams.set("thumbsize", "big");
+
+    const res = await fetch(directUrl.toString(), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000),
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok || !(res.headers.get("content-type") || "").includes("application/json")) {
+      return null;
+    }
+
+    const payload = await res.json();
+    const raw = payload?.video || payload?.data?.video || payload?.data || payload;
+    if (!raw || !(raw.id || raw.video_id || raw.title)) return null;
+
+    const videoId = String(raw.id || raw.video_id || id);
+    const thumb =
+      raw.thumbnail_url ||
+      raw.thumb ||
+      raw.default_thumb?.src ||
+      raw.default_thumb ||
+      raw.thumbs?.[0]?.src ||
+      "";
+
+    const embed =
+      typeof raw.embed === "string" && raw.embed.includes("eporner.com")
+        ? raw.embed
+        : `https://www.eporner.com/embed/${encodeURIComponent(videoId)}/`;
+
+    return {
+      ...raw,
+      id: videoId,
+      title: raw.title || raw.name || "Untitled",
+      duration: Number(raw.duration || raw.length_sec || raw.length) || 0,
+      views: Number(raw.views || raw.view_count) || 0,
+      video_url: raw.video_url || raw.url || embed,
+      embed_url: embed,
+      thumbnail_url: typeof thumb === "string" ? thumb : thumb?.src || "",
+      raw,
+    };
+  } catch (error) {
+    console.error("Direct Eporner video lookup failed:", error?.message || error);
+    return null;
+  }
 }
 
 async function fetchRecommendedVideos(currentVideo, page = 1) {
