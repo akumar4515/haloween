@@ -9,7 +9,7 @@ const getApiRoot = () => {
 // Helper function to fetch videos from eporner API for sitemap
 async function fetchEpornerVideosForSitemap(limit = 500) {
   const apiRoot = getApiRoot();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   try {
     // Fetch recent/popular videos for sitemap
@@ -56,7 +56,7 @@ async function fetchEpornerVideosForSitemap(limit = 500) {
 // Helper function to fetch affiliate videos for sitemap
 async function fetchAffiliateVideosForSitemap(limit = 500) {
   const apiRoot = getApiRoot();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   try {
     // Fetch affiliate videos for sitemap
@@ -98,7 +98,7 @@ async function fetchAffiliateVideosForSitemap(limit = 500) {
 // runaway table from crowding out the video entries.
 async function fetchTaxonomyForSitemap(endpoint, routePrefix, limit = 10000) {
   const apiRoot = getApiRoot();
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net").replace(/\/+$/, "");
 
   try {
     const res = await fetch(`${apiRoot}/affiliate/${endpoint}`, {
@@ -124,7 +124,7 @@ async function fetchTaxonomyForSitemap(endpoint, routePrefix, limit = 10000) {
 
 export default async function sitemap() {
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   const now = new Date().toISOString();
 
