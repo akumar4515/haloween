@@ -20,7 +20,7 @@ import {
 } from "../../lib/seo";
 
 const getApiRoot = () => {
-  const raw = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const raw = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "https://halloween-backend-cria.onrender.com";
   const normalized = raw.replace(/\/+$/, "");
   return normalized.endsWith("/api") ? normalized : `${normalized}/api`;
 };
