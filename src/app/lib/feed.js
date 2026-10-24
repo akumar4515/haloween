@@ -21,7 +21,7 @@ function getApiBaseUrl() {
   const configured =
     process.env.API_BASE_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "http://localhost:5000";
+    "https://halloween-backend-cria.onrender.com";
   const normalized = configured.replace(/\\/+$/, "");
   return normalized.endsWith("/api") ? normalized.slice(0, -4) : normalized;
 }
