@@ -9,7 +9,7 @@ const getApiRoot = () => {
 // Helper function to fetch Eporner videos for sitemap
 async function fetchEpornerVideosForSitemap(limit = 1000) {
   const apiRoot = getApiRoot();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   try {
     // Fetch videos from the API (limit to recent/popular ones for sitemap)
@@ -62,7 +62,7 @@ async function fetchEpornerVideosForSitemap(limit = 1000) {
 // Helper function to fetch affiliate videos for sitemap
 async function fetchAffiliateVideosForSitemap(limit = 1000) {
   const apiRoot = getApiRoot();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   try {
     // Fetch affiliate videos for sitemap
@@ -113,7 +113,7 @@ async function fetchAffiliateVideosForSitemap(limit = 1000) {
 }
 
 export async function GET() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://flovex.net";
 
   try {
     // Fetch videos from both sources in parallel (limit to 1000 each for performance)
